@@ -1,0 +1,11 @@
+{
+  "name": "record-macros",
+  "url": "https://github.com/HaxeFoundation/record-macros",
+  "license": "MIT",
+  "classPath": "src",
+  "tags":["db","spod","orm","sql"],
+  "description": "Macro-based ORM (object-relational mapping)",
+  "version": "1.0.0-alpha",
+  "releasenote": "Initial release",
+  "contributors":["andyli","ncannasse","simn","waneck"]
+}
