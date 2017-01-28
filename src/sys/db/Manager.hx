@@ -556,7 +556,7 @@ class Manager<T : Object> {
 				}
 			}
 		if( first )
-			s.add("TRUE");
+			getCnx().addValue(s, true);
 	}
 
 	/* --------------------------- MISC API  ------------------------------ */
@@ -712,7 +712,7 @@ class Manager<T : Object> {
 				cnx.addValue(b, v);
 			}
 		if( first )
-			return "FALSE";
+			return quoteAny(false);
 		return v + " IN (" + b.toString() + ")";
 	}
 
