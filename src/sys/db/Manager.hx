@@ -179,7 +179,7 @@ class Manager<T : Object> {
 		}
 		s.add("INSERT INTO ");
 		s.add(table_name);
-		if (fields.length > 0 || cnx.dbName() != "SQLite")
+		if (fields.length > 0 || getCnx().dbName() != "SQLite")
 		{
 			s.add(" (");
 			s.add(fields.join(","));
