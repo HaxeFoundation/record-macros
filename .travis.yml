@@ -1,0 +1,9 @@
+language: haxe
+sudo: false
+
+haxe:
+- 3.4.2
+
+script:
+- haxe test.hxml
+- neko test.n

@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/HaxeFoundation/record-macros.svg?branch=master)](https://travis-ci.org/HaxeFoundation/record-macros)
+
 Record macros is a macro-based library that provides object-relational mapping to Haxe.
 With `record-macros`, you can define some Classes that will map to your database tables. You can then manipulate tables like objects, by simply modifying the table fields and calling a method to update the datas or delete the entry. For most of the standard stuff, you only need to provide some basic declarations and you don't have to write one single SQL statement. You can later extend `record-macros` by adding your own SQL requests for some application-specific stuff.
 
