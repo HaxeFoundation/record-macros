@@ -495,7 +495,7 @@ class Test
 		}
 		eq(amount, 0);
 	}
-
+	
 	public function testStringIdRel()
 	{
 		setManager();
@@ -875,5 +875,24 @@ class Test
 	{
 		p.fileName = p.fileName + "(" + cnx.dbName()  +")";
 		return p;
+	}
+	
+	/**
+	 * Relation issue with haxe 3.4.*
+	 * 
+	 * https://github.com/HaxeFoundation/haxe/issues/6048
+	 * https://github.com/HaxeFoundation/record-macros/issues/6
+	 */
+	public function testIssue6048(){
+		
+		setManager();
+		
+		var sp = MySpodClass.manager.get(1, true);
+		var sp2 = MySpodClass.manager.get(2, true);
+		
+		sp.next = sp2;
+		sp.update();
+		
+		eq(sp2.theId, sp.next.theId);		
 	}
 }
