@@ -851,6 +851,26 @@ class Test
 		other1.delete();
 	}
 
+	/**
+		Check that relations are not affected by the analyzer
+
+		See: #6 and HaxeFoundation/haxe#6048
+
+		The way the analyzer transforms the expression (to prevent potential
+		side-effects) might change the context where `untyped __this__` is
+		evaluated.
+	**/
+	public function testIssue6()
+	{
+		setManager();
+
+		var parent = new MySpodClass();
+		parent.relation = new OtherSpodClass("i");
+
+		f(parent.relation == null);
+		eq(parent.relation.name, "i");
+	}
+
 	private function pos(?p:haxe.PosInfos):haxe.PosInfos
 	{
 		p.fileName = p.fileName + "(" + cnx.dbName()  +")";

@@ -612,34 +612,7 @@ class Manager<T : Object> {
 		var lock = r.lock;
 		if( manager == null || manager.table_keys == null ) throw ("Invalid manager for relation "+table_name+":"+r.prop);
 		if( manager.table_keys.length != 1 ) throw ("Relation " + r.prop + "(" + r.key + ") on a multiple key table");
-#if neko
-		Reflect.setField(class_proto.prototype,"get_"+r.prop,function() {
-			var othis = untyped __this__;
-			var f = Reflect.field(othis,hprop);
-			if( f != null )
-				return f;
-			var id = Reflect.field(othis, hkey);
-			if( id == null )
-				return null;
-			f = manager.unsafeGet(id,lock);
-			// it's highly possible that in that case the object has been inserted
-			// after we started our transaction : in that case, let's lock it, since
-			// it's still better than returning 'null' while it exists
-			if( f == null && id != null && !lock )
-				f = manager.unsafeGet(id,true);
-			Reflect.setField(othis,hprop,f);
-			return f;
-		});
-		Reflect.setField(class_proto.prototype,"set_"+r.prop,function(f) {
-			var othis = untyped __this__;
-			Reflect.setField(othis,hprop,f);
-			Reflect.setField(othis,hkey,Reflect.field(f,manager.table_keys[0]));
-			return f;
-		});
-#end
 	}
-
-	#if !neko
 
 	function __get( x : Dynamic, prop : String, key : String, lock ) {
 		var v = Reflect.field(x,prop);
@@ -658,8 +631,6 @@ class Manager<T : Object> {
 			Reflect.setField(x,key,Reflect.field(v,table_keys[0]));
 		return v;
 	}
-
-	#end
 
 	/* ---------------------------- OBJECT CACHE -------------------------- */
 

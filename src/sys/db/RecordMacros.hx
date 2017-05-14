@@ -1321,9 +1321,7 @@ class RecordMacros {
 					switch( f.kind ) {
 						case FVar(t, _):
 							f.kind = FProp("dynamic", "dynamic", t);
-							if( isNeko )
-								continue;
-							// create compile-time getter/setter for other platforms
+							// create compile-time getter/setter for all platforms
 							var relKey = null;
 							var relParams = [];
 							var lock = false;
@@ -1402,7 +1400,7 @@ class RecordMacros {
 			var inst = Context.getLocalClass().get();
 			if( inst.meta.has(":skip") )
 				return fields;
-			if (!Context.defined('neko'))
+			if (!isNeko)
 			{
 				var iname = { expr:EConst(CIdent(inst.name)), pos: inst.pos };
 				var getM = {
