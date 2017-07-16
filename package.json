@@ -1,0 +1,11 @@
+{
+  "name": "record-macros",
+  "version": "0.0.1",
+  "main": "index.js",
+  "repository": "git@github.com:jasononeil/record-macros.git",
+  "author": "Jason O'Neil <jason.oneil@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "mysql": "^2.13.0"
+  }
+}

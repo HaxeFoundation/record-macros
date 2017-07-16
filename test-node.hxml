@@ -1,0 +1,5 @@
+-cp src
+-cp test
+-lib hxnodejs
+-main TestAsync
+-js test.js
