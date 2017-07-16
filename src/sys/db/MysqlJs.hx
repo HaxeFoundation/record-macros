@@ -85,7 +85,7 @@ class MysqlJsConnectionWrapper implements AsyncConnection {
     }
 
     public function dbName() : String {
-        return 'mysql';
+        return 'MySQL';
     }
 
     public function startTransaction( cb : CompletionCallback ) : Void {
