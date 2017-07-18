@@ -1184,9 +1184,22 @@ class RecordMacros {
 		elock = defaultTrue(elock);
 		switch( econd.expr ) {
 		case EObjectDecl(_):
-			return { expr : ECall({ expr : EField(em,"unsafeGetWithKeys"), pos : pos },[econd,elock]), pos : pos };
+			return macro @:pos(pos) $em.unsafeGetWithKeys($econd, $elock);
 		default:
-			return { expr : ECall({ expr : EField(em,"unsafeGet"), pos : pos },[econd,elock]), pos : pos };
+			return macro @:pos(pos) $em.unsafeGet($econd, $elock);
+		}
+	}
+
+	public static function macroGetAsync( em : Expr, econd : Expr, elock : Expr, eCallback : Expr ) {
+		var pos = Context.currentPos();
+		var inst = getManagerInfos(Context.typeof(em),pos);
+		econd = inst.checkKeys(econd);
+		elock = defaultTrue(elock);
+		switch( econd.expr ) {
+		case EObjectDecl(_):
+			return macro @:pos(pos) $em.unsafeGetWithKeys($econd, $elock, $eCallback);
+		default:
+			return macro @:pos(pos) $em.unsafeGet($econd, $elock, $eCallback);
 		}
 	}
 
@@ -1210,22 +1223,55 @@ class RecordMacros {
 		}
 		var sql = buildSQL(em, econd, "SELECT * FROM", eopt);
 		var pos = Context.currentPos();
-		var e = { expr : ECall( { expr : EField(em, "unsafeObjects"), pos : pos }, [sql,defaultTrue(elock)]), pos : pos };
+		elock = defaultTrue(elock);
+		var e = macro @:pos(pos) $em.unsafeObjects($sql, $elock);
 		if( single )
-			e = { expr : ECall( { expr : EField(e, "first"), pos : pos }, []), pos : pos };
+			e = macro @:pos(pos) $e.first();
+		return e;
+	}
+
+	public static function macroSearchAsync( em : Expr, econd : Expr, eopt : Expr, elock : Expr, eCallback : Expr, ?single ) {
+		// allow both search(e,opts) and search(e,lock)
+		if( eopt != null && (elock == null || Type.enumEq(elock.expr, EConst(CIdent("null")))) ) {
+			switch( eopt.expr ) {
+			case EObjectDecl(_):
+			default:
+				var tmp = eopt;
+				eopt = elock;
+				elock = tmp;
+			}
+		}
+		var sql = buildSQL(em, econd, "SELECT * FROM", eopt);
+		var pos = Context.currentPos();
+		elock = defaultTrue(elock);
+		var e = macro @:pos(pos) $em.unsafeObjects($sql, $elock, $eCallback);
+		if( single )
+			e = macro @:pos(pos) $em.unsafeObjects($sql, $elock, function (list) $eCallback(list.first()));
 		return e;
 	}
 
 	public static function macroCount( em : Expr, econd : Expr ) {
 		var sql = buildSQL(em, econd, "SELECT COUNT(*) FROM");
 		var pos = Context.currentPos();
-		return { expr : ECall({ expr : EField(em,"unsafeCount"), pos : pos },[sql]), pos : pos };
+		return macro @:pos(pos) $em.unsafeCount($sql);
+	}
+
+	public static function macroCountAsync( em : Expr, econd : Expr, eCallback : Expr ) {
+		var sql = buildSQL(em, econd, "SELECT COUNT(*) FROM");
+		var pos = Context.currentPos();
+		return macro @:pos(pos) $em.unsafeCount($sql, $eCallback);
 	}
 
 	public static function macroDelete( em : Expr, econd : Expr, eopt : Expr ) {
 		var sql = buildSQL(em, econd, "DELETE FROM", eopt);
 		var pos = Context.currentPos();
-		return { expr : ECall({ expr : EField(em,"unsafeDelete"), pos : pos },[sql]), pos : pos };
+		return macro @:pos(pos) $em.unsafeDelete($sql);
+	}
+
+	public static function macroDeleteAsync( em : Expr, econd : Expr, eopt : Expr, eCallback : Expr ) {
+		var sql = buildSQL(em, econd, "DELETE FROM", eopt);
+		var pos = Context.currentPos();
+		return macro @:pos(pos) $em.unsafeDelete($sql, $eCallback);
 	}
 
 	static var isNeko = Context.defined("neko");
