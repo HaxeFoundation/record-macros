@@ -464,7 +464,7 @@ class RecordMacros {
 	}
 
 	function quoteField( f : String ) {
-		var m : { private var KEYWORDS : haxe.ds.StringMap<Bool>; } = Manager;
+		var m : { private var KEYWORDS : haxe.ds.StringMap<Bool>; } = BaseManager;
 		return m.KEYWORDS.exists(f.toLowerCase()) ? "`"+f+"`" : f;
 	}
 
