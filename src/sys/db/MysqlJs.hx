@@ -80,6 +80,29 @@ class MysqlJsConnectionWrapper implements AsyncConnection {
         sb.add(str);
     }
 
+	public function quoteAny( v : Dynamic ) : String {
+		if (v == null) {
+			return 'NULL';
+		}
+
+		var s = new StringBuf();
+		addValue(s, v);
+		return s.toString();
+	}
+
+	public function quoteList( v : String, it : Iterable<Dynamic> ) : String {
+		var b = new StringBuf();
+		var first = true;
+		if( it != null )
+			for( v in it ) {
+				if( first ) first = false else b.addChar(','.code);
+				addValue(b, v);
+			}
+		if( first )
+			return "FALSE";
+		return v + " IN (" + b.toString() + ")";
+	}
+
     public function lastInsertId( cb : Null<Error> -> Null<Int> -> Void ) : Void {
         cb(null, this.lastResultSet.insertId);
     }

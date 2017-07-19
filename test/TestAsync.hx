@@ -3,9 +3,8 @@ import sys.db.MysqlJs;
 
 class TestAsync {
     static function main() {
-        trace("Yay");
         MysqlJs.connect({
-            host: '172.17.0.3',
+            host: 'localhost',
             user: 'root',
             password: 'root',
             database: 'enthraler'

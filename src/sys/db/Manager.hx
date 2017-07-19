@@ -19,11 +19,12 @@ class Manager<T : Object> extends BaseManager<T> {
 
 	/* ---------------------------- QUOTES -------------------------- */
 
-    // TODO: in a future version this should be deprecated and moved to the `sys.db.Connection` and `sys.db.AsyncConnection` interfaces.
-    // However, this is a breaking change, so it needs to be saved for a major version bump.
     /**
     Return an SQL fragment that represents the current value, wrapped in quotes.
     This will use the `Connection.addValue()` method of the current `Manager.cnx` connection.
+
+    Depration Warning: this is mostly for low-level use, and in future may be deprecated and moved to the `sys.db.Connection` interface.
+    A version of this method is already required by the `sys.db.AsyncConnection` interface.
     **/
 	public static function quoteAny( v : Dynamic ) {
 		if (v == null) {
@@ -35,11 +36,12 @@ class Manager<T : Object> extends BaseManager<T> {
 		return s.toString();
 	}
 
-    // TODO: in a future version this should be deprecated and moved to the `sys.db.Connection` and `sys.db.AsyncConnection` interfaces.
-    // However, this is a breaking change, so it needs to be saved for a major version bump.
 	/**
     Return an SQL fragment that represents the current list of values, formatted as needed for the current DB connection.
     This will use the `Connection.addValue()` method of the current `Manager.cnx` connection.
+
+    Depration Warning: this is mostly for low-level use, and in future may be deprecated and moved to the `sys.db.Connection` interface.
+    A version of this method is already required by the `sys.db.AsyncConnection` interface.
     **/
 	public static function quoteList( v : String, it : Iterable<Dynamic> ) {
 		var b = new StringBuf();

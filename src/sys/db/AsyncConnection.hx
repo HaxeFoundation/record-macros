@@ -13,6 +13,8 @@ interface AsyncConnection {
 	function escape( s : String ) : String;
 	function quote( s : String ) : String;
 	function addValue( s : StringBuf, v : Dynamic ) : Void;
+	function quoteAny( v : Dynamic ) : String;
+	function quoteList( v : String, it : Iterable<Dynamic> ) : String;
 	function lastInsertId( cb : Null<AsyncError> -> Null<Int> -> Void ) : Void;
 	function dbName() : String;
 	function startTransaction( cb : CompletionCallback ) : Void;
@@ -58,8 +60,35 @@ class AsyncConnectionWrapper implements AsyncConnection {
 		return syncCnx.addValue(s, v);
 	}
 
-	public function lastInsertId( cb : Null<AsyncError> -> Null<Int> -> Void ) : Void {
+	public function quoteAny( v : Dynamic ) : String {
+		if (v == null) {
+			return 'NULL';
+		}
 
+		var s = new StringBuf();
+		addValue(s, v);
+		return s.toString();
+	}
+
+	public function quoteList( v : String, it : Iterable<Dynamic> ) : String {
+		var b = new StringBuf();
+		var first = true;
+		if( it != null )
+			for( v in it ) {
+				if( first ) first = false else b.addChar(','.code);
+				addValue(b, v);
+			}
+		if( first )
+			return "FALSE";
+		return v + " IN (" + b.toString() + ")";
+	}
+
+	public function lastInsertId( cb : Null<AsyncError> -> Null<Int> -> Void ) : Void {
+		try {
+			cb(null, syncCnx.lastInsertId());
+		} catch (e:Dynamic) {
+			cb(e, null);
+		}
 	}
 
 	public function dbName() : String {
