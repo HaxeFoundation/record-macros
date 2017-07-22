@@ -127,7 +127,6 @@ class BaseManager<T : Object> {
 	}
 
 	function doInsert( x : T ) {
-		unmake(x);
 		var s = new StringBuf();
 		var fields = new List();
 		var values = new List();
@@ -217,7 +216,6 @@ class BaseManager<T : Object> {
 
 	function getUpdateStatement( x : T ):Null<String>
 	{
-		unmake(x);
 		var s = new StringBuf();
 		s.add("UPDATE ");
 		s.add(table_name);
@@ -402,12 +400,6 @@ class BaseManager<T : Object> {
 		return o;
 	}
 
-	function make( x : T ) {
-	}
-
-	function unmake( x : T ) {
-	}
-
 	function quoteField(f : String) {
 		return KEYWORDS.exists(f.toLowerCase()) ? "`"+f+"`" : f;
 	}
@@ -446,7 +438,6 @@ class BaseManager<T : Object> {
 		if( c != null )
 			return c;
 		r = cacheObject(r,lock);
-		make(r);
 		return r;
 	}
 
@@ -464,7 +455,6 @@ class BaseManager<T : Object> {
 				l2.add(c);
 			else {
 				x = cacheObject(x,lock);
-				make(x);
 				l2.add(x);
 			}
 		}
@@ -676,8 +666,6 @@ class BaseManager<T : Object> {
 			#end
 			// use the new object as our cache of fields
 			Reflect.setField(c,cache_field,x);
-			// remake object
-			make(c);
 		}
 		return c;
 	}
