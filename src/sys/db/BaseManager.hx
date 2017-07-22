@@ -65,13 +65,13 @@ class BaseManager<T : Object> {
 		#end
 	}
 
-	public function dynamicSearch( x : {}, ?lock : Bool ) : List<T> {
+	function getDynamicSearchStatement( x : {} ) : String {
 		var s = new StringBuf();
 		s.add("SELECT * FROM ");
 		s.add(table_name);
 		s.add(" WHERE ");
 		addCondition(s,x);
-		return unsafeObjects(s.toString(),lock);
+		return s.toString();
 	}
 
 	function quote( s : String ) : String {
@@ -103,6 +103,16 @@ class BaseManager<T : Object> {
 	}
 
 	function doInsert( x : T ) {
+		unsafeExecute(getInsertStatement(x));
+		untyped x._lock = true;
+		// table with one key not defined : suppose autoincrement
+		if( table_keys.length == 1 && Reflect.field(x,table_keys[0]) == null )
+			// Async here
+			Reflect.setField(x,table_keys[0],getCnx().lastInsertId());
+		addToCache(x);
+	}
+
+	function getInsertStatement( x : T ) : String {
 		var s = new StringBuf();
 		var fields = new List();
 		var values = new List();
@@ -162,12 +172,7 @@ class BaseManager<T : Object> {
 		} else {
 			s.add(" DEFAULT VALUES");
 		}
-		unsafeExecute(s.toString());
-		untyped x._lock = true;
-		// table with one key not defined : suppose autoincrement
-		if( table_keys.length == 1 && Reflect.field(x,table_keys[0]) == null )
-			Reflect.setField(x,table_keys[0],getCnx().lastInsertId());
-		addToCache(x);
+		return s.toString();
 	}
 
 	inline function isBinary( t : RecordInfos.RecordType ) {
@@ -235,13 +240,17 @@ class BaseManager<T : Object> {
 	}
 
 	function doDelete( x : T ) {
+		unsafeExecute(getDeleteStatement(x));
+		removeFromCache(x);
+	}
+
+	function getDeleteStatement( x : T ) : String {
 		var s = new StringBuf();
 		s.add("DELETE FROM ");
 		s.add(table_name);
 		s.add(" WHERE ");
 		addKeys(s,x);
-		unsafeExecute(s.toString());
-		removeFromCache(x);
+		return s.toString();
 	}
 
 	function doLock( i : T ) {
@@ -454,6 +463,10 @@ class BaseManager<T : Object> {
 		var x : Dynamic = getFromCacheKey(Std.string(id) + table_name);
 		if( x != null && (!lock || x._lock) )
 			return x;
+		return unsafeObject(getGetStatement(id), lock);
+	}
+
+	function getGetStatement( id : Dynamic ) : String {
 		var s = new StringBuf();
 		s.add("SELECT * FROM ");
 		s.add(table_name);
@@ -461,7 +474,7 @@ class BaseManager<T : Object> {
 		s.add(quoteField(table_keys[0]));
 		s.add(" = ");
 		getCnx().addValue(s,id);
-		return unsafeObject(s.toString(), lock);
+		return s.toString();
 	}
 
 	public function unsafeGetWithKeys( keys : { }, ?lock : Bool ) : T {
@@ -469,12 +482,16 @@ class BaseManager<T : Object> {
 		var x : Dynamic = getFromCacheKey(makeCacheKey(cast keys));
 		if( x != null && (!lock || x._lock) )
 			return x;
+		return unsafeObject(getGetWithKeyStatement(keys),lock);
+	}
+
+	function getGetWithKeyStatement( keys : { } ) : String {
 		var s = new StringBuf();
 		s.add("SELECT * FROM ");
 		s.add(table_name);
 		s.add(" WHERE ");
 		addKeys(s,keys);
-		return unsafeObject(s.toString(),lock);
+		return s.toString();
 	}
 
 	public function unsafeGetId( o : T ) : Dynamic {

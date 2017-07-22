@@ -118,6 +118,10 @@ class Manager<T : Object> extends BaseManager<T> {
 		return RecordMacros.macroDelete(ethis, cond, options);
 	}
 
+	public function dynamicSearch( x : {}, ?lock : Bool ) : List<T> {
+		return unsafeObjects(getDynamicSearchStatement(x), lock);
+	}
+
 	override function getObjectCache():Map<String, Object> {
 		return object_cache;
 	}
