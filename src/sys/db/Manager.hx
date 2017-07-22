@@ -1,5 +1,16 @@
 package sys.db;
 
+/**
+### Caching
+
+This Manager class uses a `Map` stored in a static variable to cache objects that have been fetched from the database.
+
+This ensures that if a call to `Manager.select()` finds an object, a call to `Manager.get()` for the same object won't result in an extra SQL request.
+It will also ensure that the object returned by both queries is the same object in memory.
+
+To clear the cache, call `Manager.cleanup()`.
+This is important if you have an app that runs for a long time, or that persists static variables between requests, as seen with `neko.Web.cacheModule()`.
+**/
 class Manager<T : Object> extends BaseManager<T> {
    	public static var cnx(default, set) : Connection;
 	public static var lockMode : String;
@@ -10,22 +21,22 @@ class Manager<T : Object> extends BaseManager<T> {
 		return c;
 	}
 
-    /**
-    @deprecated This function is mostly for internal use but was previously exposed with a public API. It will likely be removed in a future version.
-    **/
+	/**
+	@deprecated This function is mostly for internal use but was previously exposed with a public API. It will likely be removed in a future version.
+	**/
 	public static function nullCompare( a : String, b : String, eq : Bool ) {
 		return BaseManager.nullCompare(cnx.dbName(), a, b, eq);
 	}
 
 	/* ---------------------------- QUOTES -------------------------- */
 
-    /**
-    Return an SQL fragment that represents the current value, wrapped in quotes.
-    This will use the `Connection.addValue()` method of the current `Manager.cnx` connection.
+	/**
+	Return an SQL fragment that represents the current value, wrapped in quotes.
+	This will use the `Connection.addValue()` method of the current `Manager.cnx` connection.
 
-    Depration Warning: this is mostly for low-level use, and in future may be deprecated and moved to the `sys.db.Connection` interface.
-    A version of this method is already required by the `sys.db.AsyncConnection` interface.
-    **/
+	Depration Warning: this is mostly for low-level use, and in future may be deprecated and moved to the `sys.db.Connection` interface.
+	A version of this method is already required by the `sys.db.AsyncConnection` interface.
+	**/
 	public static function quoteAny( v : Dynamic ) {
 		if (v == null) {
 			return 'NULL';
@@ -37,12 +48,12 @@ class Manager<T : Object> extends BaseManager<T> {
 	}
 
 	/**
-    Return an SQL fragment that represents the current list of values, formatted as needed for the current DB connection.
-    This will use the `Connection.addValue()` method of the current `Manager.cnx` connection.
+	Return an SQL fragment that represents the current list of values, formatted as needed for the current DB connection.
+	This will use the `Connection.addValue()` method of the current `Manager.cnx` connection.
 
-    Depration Warning: this is mostly for low-level use, and in future may be deprecated and moved to the `sys.db.Connection` interface.
-    A version of this method is already required by the `sys.db.AsyncConnection` interface.
-    **/
+	Depration Warning: this is mostly for low-level use, and in future may be deprecated and moved to the `sys.db.Connection` interface.
+	A version of this method is already required by the `sys.db.AsyncConnection` interface.
+	**/
 	public static function quoteList( v : String, it : Iterable<Dynamic> ) {
 		var b = new StringBuf();
 		var first = true;
@@ -56,26 +67,32 @@ class Manager<T : Object> extends BaseManager<T> {
 		return v + " IN (" + b.toString() + ")";
 	}
 
-    /**
-    `BaseManager` has an object cache it uses to prevent unnecessary SQL lookups.
-    Calling `cleanup()` will clear this cache.
-    **/
-    public static inline function cleanup() {
-        BaseManager.cleanup();
-    }
+	// Use a static var for the object cache.
+	static var object_cache : haxe.ds.StringMap<Object> = new haxe.ds.StringMap();
+	override function getObjectCache():Map<String, Object> {
+		return object_cache;
+	}
 
-    /**
-    @deprecated Calling this method is no longer required.
-    **/
-    public static inline function initialize() {
-        BaseManager.initialize();
-    }
+	/**
+	Reset the object cache.
+	See the note in the class documentation for more details on object caching.
+	**/
+	public static inline function cleanup() {
+		object_cache = new haxe.ds.StringMap();
+	}
+
+	/**
+	@deprecated Calling this method is no longer required.
+	**/
+	public static inline function initialize() {
+		BaseManager.initialize();
+	}
 
 	override function getCnx() {
-        return cnx;
+		return cnx;
 	}
 
 	override function getLockMode() {
-        return lockMode;
+		return lockMode;
 	}
 }

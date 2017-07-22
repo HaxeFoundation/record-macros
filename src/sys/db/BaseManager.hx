@@ -34,7 +34,6 @@ class BaseManager<T : Object> {
 	/* ----------------------------- STATICS ------------------------------ */
 	private static inline var cache_field = "__cache__";
 
-	private static var object_cache : haxe.ds.StringMap<Object> = new haxe.ds.StringMap();
 	private static var init_list : List<BaseManager<Dynamic>> = new List();
 
 	private static var KEYWORDS = {
@@ -592,10 +591,6 @@ class BaseManager<T : Object> {
 				m.initRelation(r);
 	}
 
-	public static function cleanup() {
-		object_cache = new haxe.ds.StringMap();
-	}
-
 	function initRelation( r : RecordInfos.RecordRelation ) {
 		// setup getter/setter
 		var spod : Dynamic = Type.resolveClass(r.type);
@@ -625,6 +620,10 @@ class BaseManager<T : Object> {
 
 	/* ---------------------------- OBJECT CACHE -------------------------- */
 
+	function getObjectCache():Map<String, Object> {
+		return throw 'BaseManager should not be used directly, please use a subclass that implements getObjectCache()';
+	}
+
 	function makeCacheKey( x : T ) : String {
 		if( table_keys.length == 1 ) {
 			var k = Reflect.field(x,table_keys[0]);
@@ -645,19 +644,19 @@ class BaseManager<T : Object> {
 	}
 
 	function addToCache( x : CacheType<T> ) {
-		object_cache.set(makeCacheKey(x),x);
+		getObjectCache().set(makeCacheKey(x),x);
 	}
 
 	function removeFromCache( x : CacheType<T> ) {
-		object_cache.remove(makeCacheKey(x));
+		getObjectCache().remove(makeCacheKey(x));
 	}
 
 	function getFromCacheKey( key : String ) : T {
-		return cast object_cache.get(key);
+		return cast getObjectCache().get(key);
 	}
 
 	function getFromCache( x : CacheType<T>, lock : Bool ) : T {
-		var c : Dynamic = object_cache.get(makeCacheKey(x));
+		var c : Dynamic = getObjectCache().get(makeCacheKey(x));
 		if( c != null && lock && !c._lock ) {
 			// synchronize the fields since our result is up-to-date !
 			for( f in Reflect.fields(c) )
