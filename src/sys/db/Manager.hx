@@ -94,6 +94,30 @@ class Manager<T : Object> extends BaseManager<T> {
 		super(classval);
 	}
 
+	public function all( ?lock: Bool ) : List<T> {
+		return unsafeObjects("SELECT * FROM " + table_name,lock);
+	}
+
+	public macro function get(ethis,id,?lock:haxe.macro.Expr.ExprOf<Bool>) : #if macro haxe.macro.Expr #else haxe.macro.Expr.ExprOf<T> #end {
+		return RecordMacros.macroGet(ethis,id,lock);
+	}
+
+	public macro function select(ethis, cond, ?options, ?lock:haxe.macro.Expr.ExprOf<Bool>) : #if macro haxe.macro.Expr #else haxe.macro.Expr.ExprOf<T> #end {
+		return RecordMacros.macroSearch(ethis, cond, options, lock, true);
+	}
+
+	public macro function search(ethis, cond, ?options, ?lock:haxe.macro.Expr.ExprOf<Bool>) : #if macro haxe.macro.Expr #else haxe.macro.Expr.ExprOf<List<T>> #end {
+		return RecordMacros.macroSearch(ethis, cond, options, lock);
+	}
+
+	public macro function count(ethis, cond) : #if macro haxe.macro.Expr #else haxe.macro.Expr.ExprOf<Int> #end {
+		return RecordMacros.macroCount(ethis, cond);
+	}
+
+	public macro function delete(ethis, cond, ?options) : #if macro haxe.macro.Expr #else haxe.macro.Expr.ExprOf<Void> #end {
+		return RecordMacros.macroDelete(ethis, cond, options);
+	}
+
 	override function getObjectCache():Map<String, Object> {
 		return object_cache;
 	}
