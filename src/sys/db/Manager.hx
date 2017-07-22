@@ -16,8 +16,12 @@ To clear the cache, call `Manager.cleanup()`.
 This is important if you have an app that runs for a long time, or that persists static variables between requests, as seen with `neko.Web.cacheModule()`.
 **/
 class Manager<T : Object> extends BaseManager<T> {
+
+	/* ---------------------------- STATIC API -------------------------- */
+
    	public static var cnx(default, set) : Connection;
 	public static var lockMode : String;
+	static var object_cache : haxe.ds.StringMap<Object> = new haxe.ds.StringMap();
 
 	private static function set_cnx( c : Connection ) {
 		cnx = c;
@@ -26,17 +30,26 @@ class Manager<T : Object> extends BaseManager<T> {
 	}
 
 	/**
+	Reset the object cache.
+	See the note in the class documentation for more details on object caching.
+	**/
+	public static inline function cleanup() {
+		object_cache = new haxe.ds.StringMap();
+	}
+
+	/**
+	@deprecated Calling this method is no longer required.
+	**/
+	public static inline function initialize() {
+		BaseManager.initialize();
+	}
+
+	/**
 	@deprecated This function is mostly for internal use but was previously exposed with a public API. It will likely be removed in a future version.
 	**/
 	public static function nullCompare( a : String, b : String, eq : Bool ) {
 		return BaseManager.nullCompare(cnx.dbName(), a, b, eq);
 	}
-
-	public function new( classval : Class<T> ) {
-		super(classval);
-	}
-
-	/* ---------------------------- QUOTES -------------------------- */
 
 	/**
 	Return an SQL fragment that represents the current value, wrapped in quotes.
@@ -75,25 +88,14 @@ class Manager<T : Object> extends BaseManager<T> {
 		return v + " IN (" + b.toString() + ")";
 	}
 
-	// Use a static var for the object cache.
-	static var object_cache : haxe.ds.StringMap<Object> = new haxe.ds.StringMap();
+	/* ---------------------------- INSTANCE API -------------------------- */
+
+	public function new( classval : Class<T> ) {
+		super(classval);
+	}
+
 	override function getObjectCache():Map<String, Object> {
 		return object_cache;
-	}
-
-	/**
-	Reset the object cache.
-	See the note in the class documentation for more details on object caching.
-	**/
-	public static inline function cleanup() {
-		object_cache = new haxe.ds.StringMap();
-	}
-
-	/**
-	@deprecated Calling this method is no longer required.
-	**/
-	public static inline function initialize() {
-		BaseManager.initialize();
 	}
 
 	override function getCnx() {
