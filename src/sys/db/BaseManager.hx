@@ -25,8 +25,9 @@ import sys.db.Connection;
 import sys.db.RecordInfos;
 
 /**
-	Record Manager : the persistent object database manager. See the tutorial on
-	Haxe website to learn how to use Record.
+	A base class for creating a DB Manager.
+
+	Please use either `Manager` on synchronous platforms (like PHP and Neko) or `AsyncManager` on asynchonous platforms (like NodeJs).
 **/
 #if !macro @:build(sys.db.RecordMacros.addRtti()) #end
 class BaseManager<T : Object> {
@@ -50,7 +51,7 @@ class BaseManager<T : Object> {
 	var table_keys : Array<String>;
 	var class_proto : { prototype : Dynamic };
 
-	public function new( classval : Class<T> ) {
+	function new( classval : Class<T> ) {
 		var m : Array<Dynamic> = haxe.rtti.Meta.getType(classval).rtti;
 		if( m == null ) throw "Missing @rtti for class " + Type.getClassName(classval);
 		table_infos = haxe.Unserializer.run(m[0]);

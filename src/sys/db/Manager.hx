@@ -1,6 +1,10 @@
 package sys.db;
 
 /**
+Synchronous DB Manager - an easy way to get, select, insert and update `Object`s from a database.
+
+See http://haxe.org/manual/spod for a tutorial on how to use `Manager`.
+
 ### Caching
 
 This Manager class uses a `Map` stored in a static variable to cache objects that have been fetched from the database.
@@ -26,6 +30,10 @@ class Manager<T : Object> extends BaseManager<T> {
 	**/
 	public static function nullCompare( a : String, b : String, eq : Bool ) {
 		return BaseManager.nullCompare(cnx.dbName(), a, b, eq);
+	}
+
+	public function new( classval : Class<T> ) {
+		super(classval);
 	}
 
 	/* ---------------------------- QUOTES -------------------------- */
