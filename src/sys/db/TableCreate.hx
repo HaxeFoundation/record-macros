@@ -66,7 +66,7 @@ class TableCreate {
 		function quote(v:String):String {
 			return untyped manager.quoteField(v);
 		}
-		var cnx : Connection = untyped manager.getCnx();
+		var cnx : Connection = Manager.cnx;
 		if( cnx == null )
 			throw "SQL Connection not initialized on Manager";
 		var dbName = cnx.dbName();
@@ -96,7 +96,7 @@ class TableCreate {
 	}
 
 	public static function exists( manager : sys.db.Manager<Dynamic> ) : Bool {
-		var cnx : Connection = untyped manager.getCnx();
+		var cnx : Connection = Manager.cnx;
 		if( cnx == null )
 			throw "SQL Connection not initialized on Manager";
 		try {

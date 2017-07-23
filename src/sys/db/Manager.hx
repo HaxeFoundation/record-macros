@@ -1,5 +1,7 @@
 package sys.db;
 
+import sys.db.AsyncConnection;
+
 /**
 Synchronous DB Manager - an easy way to get, select, insert and update `Object`s from a database.
 
@@ -21,11 +23,13 @@ class Manager<T : Object> extends BaseManager<T> {
 
    	public static var cnx(default, set) : Connection;
 	public static var lockMode : String;
+	static var asyncCnx : AsyncConnection;
 	static var object_cache : haxe.ds.StringMap<Object> = new haxe.ds.StringMap();
 
 	private static function set_cnx( c : Connection ) {
 		cnx = c;
 		lockMode = (c != null && c.dbName() == "MySQL") ? " FOR UPDATE" : "";
+		asyncCnx = new AsyncConnectionWrapper(cnx);
 		return c;
 	}
 
@@ -95,7 +99,7 @@ class Manager<T : Object> extends BaseManager<T> {
 	}
 
 	public function all( ?lock: Bool ) : List<T> {
-		return unsafeObjects("SELECT * FROM " + table_name,lock);
+		return unsafeObjects(getAllStatement(),lock);
 	}
 
 	public macro function get(ethis,id,?lock:haxe.macro.Expr.ExprOf<Bool>) : #if macro haxe.macro.Expr #else haxe.macro.Expr.ExprOf<T> #end {
@@ -122,15 +126,94 @@ class Manager<T : Object> extends BaseManager<T> {
 		return unsafeObjects(getDynamicSearchStatement(x), lock);
 	}
 
+	function doInsert( x : T ) {
+		callAsyncMethodAndReturn(doInsertAsync.bind(x));
+	}
+
+	function doUpdate( x : T ) {
+		callAsyncMethodAndReturn(doUpdateAsync.bind(x));
+	}
+
+	function doDelete( x : T ) {
+		callAsyncMethod(doDeleteAsync.bind(x));
+	}
+
+	function doLock( i : T ) {
+		callAsyncMethod(doLockAsync.bind(i));
+	}
+
+	public function unsafeObject( sql : String, lock : Bool ) : T {
+		return callAsyncMethodAndReturn(unsafeObjectAsync.bind(sql,lock));
+	}
+
+	public function unsafeObjects( sql : String, lock : Bool ) : List<T> {
+		return callAsyncMethodAndReturn(unsafeObjectsAsync.bind(sql,lock));
+	}
+
+	public function unsafeCount( sql : String ) {
+		return callAsyncMethodAndReturn(unsafeCountAsync.bind(sql));
+	}
+
+	public function unsafeDelete( sql : String ) {
+		callAsyncMethod(unsafeDeleteAsync.bind(sql));
+	}
+
+	public function unsafeGet( id : Dynamic, ?lock : Bool ) : T {
+		return callAsyncMethodAndReturn(unsafeGetAsync.bind(id, lock));
+	}
+
+	public function unsafeGetWithKeys( keys : { }, ?lock : Bool ) : T {
+		return callAsyncMethodAndReturn(unsafeGetWithKeysAsync.bind(keys, lock));
+	}
+
 	override function getObjectCache():Map<String, Object> {
 		return object_cache;
 	}
 
 	override function getCnx() {
-		return cnx;
+		return asyncCnx;
 	}
 
 	override function getLockMode() {
 		return lockMode;
+	}
+
+	inline function callAsyncMethod(asyncMethod:CompletionCallback->Void) {
+		asyncMethod(function (err) {
+			if (err != null) {
+				#if cpp
+				cpp.Lib.rethrow(err);
+				#elseif cs
+				cs.Lib.rethrow(err);
+				#elseif js
+				js.Lib.rethrow();
+				#elseif neko
+				neko.Lib.rethrow(err);
+				#else
+				throw err;
+				#end
+			}
+		});
+	}
+
+	inline function callAsyncMethodAndReturn<R>(asyncMethod:Callback<R>->Void):R {
+		var result = null;
+		asyncMethod(function (err, r) {
+			if (err != null) {
+				#if cpp
+				cpp.Lib.rethrow(err);
+				#elseif cs
+				cs.Lib.rethrow(err);
+				#elseif js
+				js.Lib.rethrow();
+				#elseif neko
+				neko.Lib.rethrow(err);
+				#else
+				throw err;
+				#end
+			}
+			result = r;
+		});
+		return result;
 	}
 }

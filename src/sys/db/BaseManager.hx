@@ -21,7 +21,7 @@
  */
 package sys.db;
 import Reflect;
-import sys.db.Connection;
+import sys.db.AsyncConnection;
 import sys.db.RecordInfos;
 
 /**
@@ -65,6 +65,10 @@ class BaseManager<T : Object> {
 		#end
 	}
 
+	function getAllStatement() : String {
+		return "SELECT * FROM " + table_name;
+	}
+
 	function getDynamicSearchStatement( x : {} ) : String {
 		var s = new StringBuf();
 		s.add("SELECT * FROM ");
@@ -102,14 +106,26 @@ class BaseManager<T : Object> {
 		}
 	}
 
-	function doInsert( x : T ) {
-		unsafeExecute(getInsertStatement(x));
-		untyped x._lock = true;
-		// table with one key not defined : suppose autoincrement
-		if( table_keys.length == 1 && Reflect.field(x,table_keys[0]) == null )
-			// Async here
-			Reflect.setField(x,table_keys[0],getCnx().lastInsertId());
-		addToCache(x);
+	function doInsertAsync( x : T, cb : Callback<T> ) {
+		unsafeExecute(getInsertStatement(x), function (err, rs) {
+			if (err != null) {
+				cb(err, null);
+				return;
+			}
+			untyped x._lock = true;
+			// If the table just has one key, and it's not set on this object, check for an auto-increment.
+			if( table_keys.length == 1 && Reflect.field(x,table_keys[0]) == null ) {
+				getCnx().lastInsertId(function (err, id) {
+					if (err != null) {
+						cb(err, null);
+						return;
+					}
+					Reflect.setField(x,table_keys[0],id);
+					addToCache(x);
+					cb(null, x);
+				});
+			}
+		});
 	}
 
 	function getInsertStatement( x : T ) : String {
@@ -187,16 +203,21 @@ class BaseManager<T : Object> {
 		return a != b && (a == null || b == null || a.compare(b) != 0);
 	}
 
-	function doUpdate( x : T ) {
+	function doUpdateAsync( x : T, cb : Callback<T> ) {
 		if( untyped !x._lock )
 			throw "Cannot update a not locked object";
 		var upd = getUpdateStatement(x);
 		if (upd == null) return;
-		unsafeExecute(upd);
+		unsafeExecute(upd, function (err, rs) {
+			if (err != null) {
+				cb(err, null);
+				return;
+			}
+			cb(null, x);
+		});
 	}
 
-	function getUpdateStatement( x : T ):Null<String>
-	{
+	function getUpdateStatement( x : T ):Null<String> {
 		var s = new StringBuf();
 		s.add("UPDATE ");
 		s.add(table_name);
@@ -239,9 +260,15 @@ class BaseManager<T : Object> {
 		return s.toString();
 	}
 
-	function doDelete( x : T ) {
-		unsafeExecute(getDeleteStatement(x));
-		removeFromCache(x);
+	function doDeleteAsync( x : T, cb : CompletionCallback ) {
+		unsafeExecute(getDeleteStatement(x), function (err, _) {
+			if (err != null) {
+				cb(err);
+				return;
+			}
+			removeFromCache(x);
+			cb(null);
+		});
 	}
 
 	function getDeleteStatement( x : T ) : String {
@@ -253,17 +280,28 @@ class BaseManager<T : Object> {
 		return s.toString();
 	}
 
-	function doLock( i : T ) {
-		if( untyped i._lock )
+	function doLockAsync( i : T, cb : CompletionCallback ) {
+		if( untyped i._lock ) {
+			cb(null);
 			return;
+		}
 		var s = new StringBuf();
 		s.add("SELECT * FROM ");
 		s.add(table_name);
 		s.add(" WHERE ");
 		addKeys(s, i);
 		// will force sync
-		if( unsafeObject(s.toString(),true) != i )
-			throw "Could not lock object (was deleted ?); try restarting transaction";
+		unsafeObjectAsync(s.toString(), true, function (err, o) {
+			if (err != null) {
+				cb(err);
+				return;
+			}
+			if (o != i) {
+				cb("Could not lock object - perhaps it was deleted? Try restarting transaction.");
+				return;
+			}
+			cb(null);
+		});
 	}
 
 	function objectToString( it : T ) : String {
@@ -405,65 +443,90 @@ class BaseManager<T : Object> {
 		}
 	}
 
-	function unsafeExecute( sql : String ) {
-		return getCnx().request(sql);
+	function unsafeExecute( sql : String, cb : ResultSetCallback ) {
+		getCnx().request(sql, cb);
 	}
 
-	public function unsafeObject( sql : String, lock : Bool ) : T {
+	function unsafeObjectAsync( sql : String, lock : Bool, cb : Callback<T> ) {
 		if( lock != false ) {
 			lock = true;
 			sql += getLockMode();
 		}
-		var r = unsafeExecute(sql);
-		var r = r.hasNext() ? r.next() : null;
-		if( r == null )
-			return null;
-		normalizeCache(r);
-		var c = getFromCache(r,lock);
-		if( c != null )
-			return c;
-		r = cacheObject(r,lock);
-		return r;
-	}
-
-	public function unsafeObjects( sql : String, lock : Bool ) : List<T> {
-		if( lock != false ) {
-			lock = true;
-			sql += getLockMode();
-		}
-		var l = unsafeExecute(sql).results();
-		var l2 = new List<T>();
-		for( x in l ) {
-			normalizeCache(x);
-			var c = getFromCache(x,lock);
-			if( c != null )
-				l2.add(c);
-			else {
-				x = cacheObject(x,lock);
-				l2.add(x);
+		unsafeExecute(sql, function (err, r) {
+			if (err != null) {
+				cb(err, null);
+				return;
 			}
+			var r = r.hasNext() ? r.next() : null;
+			if( r == null )
+				return null;
+			normalizeCache(r);
+			var c = getFromCache(r,lock);
+			if( c != null ) {
+				cb(null, c);
+				return;
+			}
+			r = cacheObject(r,lock);
+			cb(null, r);
+		});
+	}
+
+	public function unsafeObjectsAsync( sql : String, lock : Bool, cb : Callback<List<T>> ) {
+		if( lock != false ) {
+			lock = true;
+			sql += getLockMode();
 		}
-		return l2;
+		unsafeExecute(sql, function (err, rs) {
+			if (err != null) {
+				cb(err, null);
+				return;
+			}
+			var l = rs.results();
+			var l2 = new List<T>();
+			for( x in l ) {
+				normalizeCache(x);
+				var c = getFromCache(x,lock);
+				if( c != null )
+					l2.add(c);
+				else {
+					x = cacheObject(x,lock);
+					l2.add(x);
+				}
+			}
+			cb(null, l2);
+		});
 	}
 
-	public function unsafeCount( sql : String ) {
-		return unsafeExecute(sql).getIntResult(0);
+	public function unsafeCountAsync( sql : String, cb : Callback<Int> ) {
+		unsafeExecute(sql, function (err, rs) {
+			if (err != null) {
+				cb(err, null);
+				return;
+			}
+			cb(null, rs.getIntResult(0));
+		});
 	}
 
-	public function unsafeDelete( sql : String ) {
-		unsafeExecute(sql);
+	public function unsafeDeleteAsync( sql : String, cb : CompletionCallback ) {
+		unsafeExecute(sql, function (err, _) cb(err));
 	}
 
-	public function unsafeGet( id : Dynamic, ?lock : Bool ) : T {
+	public function unsafeGetAsync( id : Dynamic, ?lock : Bool, cb : Callback<T> ) {
 		if( lock == null ) lock = true;
-		if( table_keys.length != 1 )
-			throw "Invalid number of keys";
-		if( id == null )
-			return null;
+		if( table_keys.length != 1 ) {
+			cb("Invalid number of keys", null);
+			return;
+		}
+		if( id == null ) {
+			cb(null, null);
+			return;
+		}
 		var x : Dynamic = getFromCacheKey(Std.string(id) + table_name);
-		if( x != null && (!lock || x._lock) )
-			return x;
-		return unsafeObject(getGetStatement(id), lock);
+		if( x != null && (!lock || x._lock) ) {
+			cb(null, x);
+			return;
+		}
+		unsafeObjectAsync(getGetStatement(id), lock, cb);
 	}
 
 	function getGetStatement( id : Dynamic ) : String {
@@ -477,12 +540,14 @@ class BaseManager<T : Object> {
 		return s.toString();
 	}
 
-	public function unsafeGetWithKeys( keys : { }, ?lock : Bool ) : T {
+	public function unsafeGetWithKeysAsync( keys : { }, ?lock : Bool, cb : Callback<T> ) {
 		if( lock == null ) lock = true;
 		var x : Dynamic = getFromCacheKey(makeCacheKey(cast keys));
-		if( x != null && (!lock || x._lock) )
-			return x;
-		return unsafeObject(getGetWithKeyStatement(keys),lock);
+		if( x != null && (!lock || x._lock) ) {
+			cb(null, x);
+			return;
+		}
+		unsafeObjectAsync(getGetWithKeyStatement(keys),lock, cb);
 	}
 
 	function getGetWithKeyStatement( keys : { } ) : String {
@@ -543,7 +608,7 @@ class BaseManager<T : Object> {
 		return table_infos;
 	}
 
-	function getCnx() : Connection {
+	function getCnx() : AsyncConnection {
 		return throw 'BaseManager should not be used directly, please use a subclass that implements getCnx()';
 	}
 
@@ -588,8 +653,14 @@ class BaseManager<T : Object> {
 		var v = Reflect.field(x,prop);
 		if( v != null )
 			return v;
-		var y = unsafeGet(Reflect.field(x, key), lock);
-		Reflect.setField(x,prop,v);
+		var y;
+		// TODO: Report an error if this is called but the manager is not synchronous.
+		// Because this is called in a `get` getter function, there is no way we can use an async callback.
+		// Supporting relationships via properties seamlessly may not be possible when using an async manager.
+		unsafeGetAsync(Reflect.field(x, key), lock, function (err, obj) {
+			y = obj;
+			Reflect.setField(x,prop,v);
+		});
 		return y;
 	}
 
