@@ -124,5 +124,6 @@ class AsyncConnectionWrapper implements AsyncConnection {
 }
 
 typedef AsyncError = Dynamic;
-typedef ResultSetCallback = Null<AsyncError> -> ResultSet -> Void;
+typedef Callback<T> = Null<AsyncError> -> T -> Void;
+typedef ResultSetCallback = Callback<ResultSet>;
 typedef CompletionCallback = Null<AsyncError> -> Void;
