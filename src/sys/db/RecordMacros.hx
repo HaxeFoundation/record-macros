@@ -1128,8 +1128,7 @@ class RecordMacros {
 				default:
 				}
 		});
-		// TODO; should this be BaseManager?
-		Context.registerModuleReuseCall("sys.db.Manager", "sys.db.RecordMacros.addRtti()");
+		Context.registerModuleReuseCall("sys.db.BaseManager", "sys.db.RecordMacros.addRtti()");
 		return null;
 	}
 
