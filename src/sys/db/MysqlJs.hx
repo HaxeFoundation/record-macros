@@ -171,7 +171,9 @@ class MysqlJsResultSet implements ResultSet {
     }
 
     public function getResult( n : Int ) : String {
-        return ''+rawResults[i][n];
+        var fieldName = fields[n];
+        var fieldValue = Reflect.field(rawResults[i], fieldName);
+        return ''+fieldValue;
     }
 
     public function getIntResult( n : Int ) : Int {
