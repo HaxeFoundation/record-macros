@@ -644,7 +644,7 @@ class RecordMacros {
 							var ename = epath.pop();
 							var etype = TPath({ name:ename, pack:epath });
 							if (r1.n) {
-								return { sql: macro $baseManager.nullCompare(${r1.sql}, { var tmp = @:pos(e2.pos) (${e2} : $etype); tmp == null ? null : (std.Type.enumIndex(tmp) + ''); }, ${eq ? macro true : macro false}), t : DBool, n: true };
+								return { sql: macro @:privateAccess $baseManager.nullCompare(@:privateAccess ${managerInst}.getCnx().dbName(), ${r1.sql}, { var tmp = @:pos(e2.pos) (${e2} : $etype); tmp == null ? null : (std.Type.enumIndex(tmp) + ''); }, ${eq ? macro true : macro false}), t : DBool, n: true };
 							} else {
 								var expr = macro { @:pos(e2.pos) var tmp : $etype = $e2; (tmp == null ? null : (std.Type.enumIndex(tmp) + '')); };
 								return { sql: makeOp(eq?" = ":" != ", r1.sql, expr, pos), t : DBool, n : r1.n };
@@ -670,8 +670,10 @@ class RecordMacros {
 		}
 		var sql;
 		// use some different operators if there is a possibility for comparing two NULLs
-		if( r1.n || r2.n )
-			sql = { expr : ECall({ expr : EField(baseManager,"nullCompare"), pos : pos },[r1.sql,r2.sql,{ expr : EConst(CIdent(eq?"true":"false")), pos : pos }]), pos : pos };
+		if( r1.n || r2.n ) {
+			var trueOrFalse = eq ? macro true : macro false;
+			sql = macro @:pos(pos) @:privateAccess $baseManager.nullCompare(@:privateAccess ${managerInst}.getCnx().dbName(), ${r1.sql}, ${r2.sql}, ${trueOrFalse});
+		}
 		else
 			sql = makeOp(eq?" = ":" != ", r1.sql, r2.sql, pos);
 		return { sql : sql, t : DBool, n : r1.n || r2.n };
@@ -911,7 +913,11 @@ class RecordMacros {
 				params : [TPType(convertType(e.t))],
 				sub : null,
 			});
-			return { sql : { expr : ECall( { expr : EField(baseManager, "quoteList"), pos : p }, [e.sql, { expr : ECheckType(v,t), pos : p } ]), pos : p }, t : DBool, n : e.n };
+			return {
+				sql : macro @:pos(p) @:privateAccess $managerInst.getCnx().quoteList(${e.sql}, ($v:$t)),
+				t : DBool,
+				n : e.n
+			};
 		default:
 			return buildDefault(cond);
 		}
