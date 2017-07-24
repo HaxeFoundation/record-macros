@@ -43,6 +43,8 @@ class RecordMacros {
 
 	var isNull : Bool;
 	var manager : Expr;
+	var baseManager : Expr;
+	var managerInst : Expr;
 	var inf : RecordInfos;
 	var g : {
 		var cache : haxe.ds.StringMap<RecordInfos>;
@@ -50,7 +52,7 @@ class RecordMacros {
 		var functions : haxe.ds.StringMap<SqlFunction>;
 	};
 
-	function new(c) {
+	function new(c, em : Expr) {
 		if( GLOBAL != null )
 			g = GLOBAL;
 		else {
@@ -58,6 +60,7 @@ class RecordMacros {
 			GLOBAL = g;
 		}
 		inf = getRecordInfos(c);
+		managerInst = (em != null) ? em : macro null;
 	}
 
 	function initGlobals()
@@ -113,9 +116,9 @@ class RecordMacros {
 		#end
 	}
 
-	public dynamic function getManager( t : haxe.macro.Type, p : Position ) : RecordMacros {
+	public dynamic function getManager( t : haxe.macro.Type, em : haxe.macro.Expr, p : Position ) : RecordMacros {
 		#if macro
-		return getManagerInfos(t, p);
+		return getManagerInfos(t, em, p);
 		#else
 		throw "not implemented";
 		return null;
@@ -470,6 +473,7 @@ class RecordMacros {
 
 	function initManager( pos : Position ) {
 		manager = { expr : EField({ expr : EField({ expr : EConst(CIdent("sys")), pos : pos },"db"), pos : pos }, "Manager"), pos : pos };
+		baseManager = { expr : EField({ expr : EField({ expr : EConst(CIdent("sys")), pos : pos },"db"), pos : pos }, "BaseManager"), pos : pos };
 	}
 
 	inline function makeString( s : String, pos ) {
@@ -505,7 +509,7 @@ class RecordMacros {
 			}
 		default:
 		}
-		return { expr : ECall( { expr : EField(manager, "quoteAny"), pos : v.pos }, [ensureType(v,t,isNull)]), pos : v.pos }
+		return macro @:pos(v.pos) @:privateAccess ${managerInst}.getCnx().quoteAny(${ensureType(v,t,isNull)});
 	}
 
 	inline function sqlAddValue( sql : Expr, v : Expr, t : RecordType, isNull : Bool ) {
@@ -599,7 +603,7 @@ class RecordMacros {
 		return { sql : makeOp(op, r1.sql, r2.sql, pos), t : DInt, n : r1.n || r2.n };
 	}
 
-	function buildEq( eq, e1 : Expr, e2, pos ) {
+	function buildEq( eq : Bool, e1 : Expr, e2, pos ) {
 		var r1 = null;
 		switch( e1.expr ) {
 		case EConst(c):
@@ -640,7 +644,7 @@ class RecordMacros {
 							var ename = epath.pop();
 							var etype = TPath({ name:ename, pack:epath });
 							if (r1.n) {
-								return { sql: macro $manager.nullCompare(${r1.sql}, { var tmp = @:pos(e2.pos) (${e2} : $etype); tmp == null ? null : (std.Type.enumIndex(tmp) + ''); }, ${eq ? macro true : macro false}), t : DBool, n: true };
+								return { sql: macro $baseManager.nullCompare(${r1.sql}, { var tmp = @:pos(e2.pos) (${e2} : $etype); tmp == null ? null : (std.Type.enumIndex(tmp) + ''); }, ${eq ? macro true : macro false}), t : DBool, n: true };
 							} else {
 								var expr = macro { @:pos(e2.pos) var tmp : $etype = $e2; (tmp == null ? null : (std.Type.enumIndex(tmp) + '')); };
 								return { sql: makeOp(eq?" = ":" != ", r1.sql, expr, pos), t : DBool, n : r1.n };
@@ -667,7 +671,7 @@ class RecordMacros {
 		var sql;
 		// use some different operators if there is a possibility for comparing two NULLs
 		if( r1.n || r2.n )
-			sql = { expr : ECall({ expr : EField(manager,"nullCompare"), pos : pos },[r1.sql,r2.sql,{ expr : EConst(CIdent(eq?"true":"false")), pos : pos }]), pos : pos };
+			sql = { expr : ECall({ expr : EField(baseManager,"nullCompare"), pos : pos },[r1.sql,r2.sql,{ expr : EConst(CIdent(eq?"true":"false")), pos : pos }]), pos : pos };
 		else
 			sql = makeOp(eq?" = ":" != ", r1.sql, r2.sql, pos);
 		return { sql : sql, t : DBool, n : r1.n || r2.n };
@@ -692,7 +696,7 @@ class RecordMacros {
 					var mpath = { expr : EConst(CIdent(first)), pos : p };
 					for ( e in path )
 						mpath = { expr : EField(mpath, e), pos : p };
-					var m = getManager(typeof(mpath),p);
+					var m = getManager(typeof(mpath),mpath,p);
 					var getid = { expr : ECall( { expr : EField(mpath, "unsafeGetId"), pos : p }, [f.expr]), pos : p };
 					f.field = r.key;
 					f.expr = ensureType(getid, m.inf.hfields.get(m.inf.key[0]).t, r.isNull);
@@ -907,7 +911,7 @@ class RecordMacros {
 				params : [TPType(convertType(e.t))],
 				sub : null,
 			});
-			return { sql : { expr : ECall( { expr : EField(manager, "quoteList"), pos : p }, [e.sql, { expr : ECheckType(v,t), pos : p } ]), pos : p }, t : DBool, n : e.n };
+			return { sql : { expr : ECall( { expr : EField(baseManager, "quoteList"), pos : p }, [e.sql, { expr : ECheckType(v,t), pos : p } ]), pos : p }, t : DBool, n : e.n };
 		default:
 			return buildDefault(cond);
 		}
@@ -1071,12 +1075,12 @@ class RecordMacros {
 		return opt;
 	}
 
-	public static function getInfos( t : haxe.macro.Type ) {
+	public static function getInfos( t : haxe.macro.Type, ?managerExpr : Expr ) {
 		var c = switch( t ) {
 		case TInst(c, _): if( c.toString() == "sys.db.Object" ) return null; c;
 		default: return null;
 		};
-		return new RecordMacros(c);
+		return new RecordMacros(c, managerExpr);
 	}
 
 
@@ -1118,16 +1122,17 @@ class RecordMacros {
 				default:
 				}
 		});
+		// TODO; should this be BaseManager?
 		Context.registerModuleReuseCall("sys.db.Manager", "sys.db.RecordMacros.addRtti()");
 		return null;
 	}
 
-	static function getManagerInfos( t : haxe.macro.Type, pos ) {
+	static function getManagerInfos( t : haxe.macro.Type, managerExpr : Expr, pos ) {
 		var param = null;
 		switch( t ) {
 		case TInst(c, p):
 			while( true ) {
-				if( c.toString() == "sys.db.Manager" ) {
+				if( c.toString() == "sys.db.Manager" || c.toString() == "sys.db.AsyncManager" ) {
 					param = p[0];
 					break;
 				}
@@ -1137,11 +1142,11 @@ class RecordMacros {
 				p = csup.params;
 			}
 		case TType(t, p):
-			if( p.length == 1 && t.toString() == "sys.db.Manager" )
+			if( p.length == 1 && (t.toString() == "sys.db.Manager" || t.toString() == "sys.db.AsyncManager") )
 				param = p[0];
 		default:
 		}
-		var inst = if( param == null ) null else getInfos(param);
+		var inst = if( param == null ) null else getInfos(param, managerExpr);
 		if( inst == null )
 			Context.error("This method must be called from a specific Manager", Context.currentPos());
 		inst.initManager(pos);
@@ -1150,7 +1155,7 @@ class RecordMacros {
 
 	static function buildSQL( em : Expr, econd : Expr, prefix : String, ?eopt : Expr ) {
 		var pos = Context.currentPos();
-		var inst = getManagerInfos(Context.typeof(em),pos);
+		var inst = getManagerInfos(Context.typeof(em),em,pos);
 		var sql = { expr : EConst(CString(prefix + " " + inst.quoteField(inst.inf.name))), pos : econd.pos };
 		var r = inst.buildCond(econd);
 		if( r.t != DBool ) Context.error("Expression should be a condition", econd.pos);
@@ -1179,7 +1184,7 @@ class RecordMacros {
 
 	public static function macroGet( em : Expr, econd : Expr, elock : Expr ) {
 		var pos = Context.currentPos();
-		var inst = getManagerInfos(Context.typeof(em),pos);
+		var inst = getManagerInfos(Context.typeof(em),em,pos);
 		econd = inst.checkKeys(econd);
 		elock = defaultTrue(elock);
 		switch( econd.expr ) {
@@ -1192,7 +1197,7 @@ class RecordMacros {
 
 	public static function macroGetAsync( em : Expr, econd : Expr, elock : Expr, eCallback : Expr ) {
 		var pos = Context.currentPos();
-		var inst = getManagerInfos(Context.typeof(em),pos);
+		var inst = getManagerInfos(Context.typeof(em),em,pos);
 		econd = inst.checkKeys(econd);
 		elock = defaultTrue(elock);
 		switch( econd.expr ) {
