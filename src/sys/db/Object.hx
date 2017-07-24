@@ -21,6 +21,8 @@
  */
 package sys.db;
 
+import sys.db.AsyncConnection;
+
 /**
 	Record Object : the persistent object base type. See the tutorial on Haxe
 	website to learn how to use Record.
@@ -49,20 +51,51 @@ class Object {
 	}
 #end
 
-	public function insert() {
-		@:privateAccess _manager.doInsertAsync(this, function (_, _) {});
+	/**
+	Insert the current object to the database.
+
+	To insert an object, you must either have the static `Manager.cnx` set to a valid `Connection`, or you must provide a `Manager` as the first argument.
+
+	If you are using an `AsyncConnection`, you should provide a callback to know when the operation is complete.
+	If you do not provide a callback and an error occurs, the error will be re-thrown rather than passed to a callback.
+	**/
+	public function insert( ?manager : Manager<Object>, ?cb : CompletionCallback ) {
+		if (manager != null) {
+			_manager = manager;
+		} else if (_manager == null || @:privateAccess _manager.getCnx() == null) {
+			throw 'Either set `Manager.cnx` before calling `insert()` or provide a `Manager` argument when calling `insert()`';
+		}
+		@:privateAccess _manager.doInsertAsync(this, handleError.bind(cb,_));
 	}
 
-	public function update() {
-		@:privateAccess _manager.doUpdateAsync(this, function (_, _) {});
+	/**
+	Update the current object in the database, saving the current state of it's fields to columns in the table.
+
+	If you are using an `AsyncConnection`, you should provide a callback to know when the operation is complete.
+	If you do not provide a callback and an error occurs, the error will be re-thrown rather than passed to a callback.
+	**/
+	public function update( ?cb : CompletionCallback ) {
+		@:privateAccess _manager.doUpdateAsync(this, handleError.bind(cb,_));
 	}
 
-	public function lock() {
-		@:privateAccess _manager.doLockAsync(this, function (_) {});
+	/**
+	Lock the current object so that the DB engine is aware you intend to update it.
+
+	If you are using an `AsyncConnection`, you should provide a callback to know when the operation is complete.
+	If you do not provide a callback and an error occurs, the error will be re-thrown rather than passed to a callback.
+	**/
+	public function lock( ?cb : CompletionCallback ) {
+		@:privateAccess _manager.doLockAsync(this, handleError.bind(cb,_,null));
 	}
 
-	public function delete() {
-		@:privateAccess _manager.doDeleteAsync(this, function (_) {});
+	/**
+	Delete the current object from the database.
+
+	If you are using an `AsyncConnection`, you should provide a callback to know when the operation is complete.
+	If you do not provide a callback and an error occurs, the error will be re-thrown rather than passed to a callback.
+	**/
+	public function delete( ?cb : CompletionCallback ) {
+		@:privateAccess _manager.doDeleteAsync(this, handleError.bind(cb,_,null));
 	}
 
 	public function isLocked() {
@@ -73,4 +106,21 @@ class Object {
 		return @:privateAccess _manager.objectToString(this);
 	}
 
+	inline function handleError( ?cb : CompletionCallback, err:String, result:Dynamic ) {
+		if (cb!=null) {
+			cb(err);
+		} else if (err != null) {
+			#if cpp
+			cpp.Lib.rethrow(err);
+			#elseif cs
+			cs.Lib.rethrow(err);
+			#elseif js
+			js.Lib.rethrow();
+			#elseif neko
+			neko.Lib.rethrow(err);
+			#else
+			throw err;
+			#end
+		}
+	}
 }
