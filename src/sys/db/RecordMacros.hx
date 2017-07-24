@@ -1251,7 +1251,7 @@ class RecordMacros {
 		elock = defaultTrue(elock);
 		var e = macro @:pos(pos) $em.unsafeObjects($sql, $elock, $eCallback);
 		if( single )
-			e = macro @:pos(pos) $em.unsafeObjects($sql, $elock, function (list) $eCallback(list.first()));
+			e = macro @:pos(pos) $em.unsafeObjects($sql, $elock, function (err, list) $eCallback(err, list.first()));
 		return e;
 	}
 
