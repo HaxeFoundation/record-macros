@@ -653,14 +653,20 @@ class BaseManager<T : Object> {
 		var v = Reflect.field(x,prop);
 		if( v != null )
 			return v;
-		var y;
-		// TODO: Report an error if this is called but the manager is not synchronous.
-		// Because this is called in a `get` getter function, there is no way we can use an async callback.
-		// Supporting relationships via properties seamlessly may not be possible when using an async manager.
+		var y = null;
 		unsafeGetAsync(Reflect.field(x, key), lock, function (err, obj) {
+			if (err != null) {
+				throw err;
+				return;
+			}
 			y = obj;
 			Reflect.setField(x,prop,v);
 		});
+		if (y == null && !Std.is(getCnx(), AsyncConnection.AsyncConnectionWrapper)) {
+			// Because this is called in a `get` getter function, there is no way we can use an async callback.
+			// Supporting relationships via properties seamlessly may not be possible when using an async manager.
+			throw 'Seamless fetching of @:relation related objects is not supported with AsyncConnections';
+		}
 		return y;
 	}
 
