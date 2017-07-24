@@ -628,10 +628,10 @@ class Test
 		var id = scls.theId;
 
 		//if no change made, update should return nothing
-		eq( untyped MySpodClass.manager.getUpdateStatement( scls ), null );
+		eq( @:privateAccess MySpodClass.manager.getUpdateStatement( scls ), null );
 		Manager.cleanup();
 		scls = MySpodClass.manager.get(id);
-		eq( untyped MySpodClass.manager.getUpdateStatement( scls ), null );
+		eq( @:privateAccess MySpodClass.manager.getUpdateStatement( scls ), null );
 		scls.delete();
 
 		//try now with null SData and null relation
@@ -641,10 +641,10 @@ class Test
 		var id = scls.theId;
 
 		//if no change made, update should return nothing
-		eq( untyped NullableSpodClass.manager.getUpdateStatement( scls ), null );
+		eq( @:privateAccess NullableSpodClass.manager.getUpdateStatement( scls ), null );
 		Manager.cleanup();
 		scls = NullableSpodClass.manager.get(id);
-		eq( untyped NullableSpodClass.manager.getUpdateStatement( scls ), null );
+		eq( @:privateAccess NullableSpodClass.manager.getUpdateStatement( scls ), null );
 		eq(scls.data,null);
 		eq(scls.relationNullable,null);
 		eq(scls.abstractType,null);
@@ -662,10 +662,10 @@ class Test
 		var id = scls.theId;
 
 		//if no change made, update should return nothing
-		eq( untyped NullableSpodClass.manager.getUpdateStatement( scls ), null );
+		eq( @:privateAccess NullableSpodClass.manager.getUpdateStatement( scls ), null );
 		Manager.cleanup();
 		scls = NullableSpodClass.manager.get(id);
-		eq( untyped NullableSpodClass.manager.getUpdateStatement( scls ), null );
+		eq( @:privateAccess NullableSpodClass.manager.getUpdateStatement( scls ), null );
 		eq(scls.data,null);
 		eq(scls.relationNullable,null);
 		eq(scls.abstractType,null);
@@ -674,7 +674,7 @@ class Test
 
 		scls = new NullableSpodClass();
 		scls.theId = id;
-		t( untyped NullableSpodClass.manager.getUpdateStatement( scls ) != null );
+		t( @:privateAccess NullableSpodClass.manager.getUpdateStatement( scls ) != null );
 
 		scls.delete();
 	}

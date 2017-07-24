@@ -1309,7 +1309,7 @@ class RecordMacros {
 				params : [],
 				ret : t,
 				// we set efield to an empty object to make sure it will be != from previous value when insert/update is triggered
-				expr : macro { if( $ecache == null ) { $ecache = { v : untyped manager.doUnserialize($fname, cast $efield) }; Reflect.setField(this, $fname, { } ); }; return $ecache.v; },
+				expr : macro { if( $ecache == null ) { $ecache = { v : @:privateAccess manager.doUnserialize($fname, cast $efield) }; Reflect.setField(this, $fname, { } ); }; return $ecache.v; },
 			};
 			var set = {
 				args : [{ name : "_v", opt : false, type : t, value : null }],
@@ -1419,13 +1419,13 @@ class RecordMacros {
 								args : [],
 								params : [],
 								ret : t,
-								expr : Context.parse("return untyped "+tname+".manager.__get(this,'"+f.name+"','"+relKey+"',"+lock+")",pos),
+								expr : Context.parse("return @:privateAccess "+tname+".manager.__get(this,'"+f.name+"','"+relKey+"',"+lock+")",pos),
 							};
 							var set = {
 								args : [{ name : "_v", opt : false, type : t, value : null }],
 								params : [],
 								ret : t,
-								expr : Context.parse("return untyped "+tname+".manager.__set(this,'"+f.name+"','"+relKey+"',_v)",pos),
+								expr : Context.parse("return @:privateAccess "+tname+".manager.__set(this,'"+f.name+"','"+relKey+"',_v)",pos),
 							};
 							var meta = [{ name : ":hide", params : [], pos : pos }];
 							f.meta.push({ name: ":isVar", params : [], pos : pos });

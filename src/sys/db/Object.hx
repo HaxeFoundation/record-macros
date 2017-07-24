@@ -29,15 +29,15 @@ package sys.db;
 @:autoBuild(sys.db.RecordMacros.macroBuild()) @:skipFields
 class Object {
 
-	var _lock(default,never) : Bool;
-	var _manager(default,never) : sys.db.Manager<Dynamic>;
+	var _lock(default,null) : Bool;
+	var _manager(default,null) : sys.db.BaseManager<Dynamic>;
 #if !neko
 	@:keep var __cache__:Dynamic;
 #end
 
 	public function new() {
 		#if !neko
-		if( _manager == null ) untyped _manager = __getManager();
+		if( _manager == null ) @:privateAccess _manager = __getManager();
 		#end
 	}
 
@@ -50,19 +50,19 @@ class Object {
 #end
 
 	public function insert() {
-		untyped _manager.doInsert(this);
+		@:privateAccess _manager.doInsertAsync(this, function (_, _) {});
 	}
 
 	public function update() {
-		untyped _manager.doUpdate(this);
+		@:privateAccess _manager.doUpdateAsync(this, function (_, _) {});
 	}
 
 	public function lock() {
-		untyped _manager.doLock(this);
+		@:privateAccess _manager.doLockAsync(this, function (_) {});
 	}
 
 	public function delete() {
-		untyped _manager.doDelete(this);
+		@:privateAccess _manager.doDeleteAsync(this, function (_) {});
 	}
 
 	public function isLocked() {
@@ -70,7 +70,7 @@ class Object {
 	}
 
 	public function toString() : String {
-		return untyped _manager.objectToString(this);
+		return @:privateAccess _manager.objectToString(this);
 	}
 
 }

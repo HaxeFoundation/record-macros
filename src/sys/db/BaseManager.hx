@@ -112,7 +112,7 @@ class BaseManager<T : Object> {
 				cb(err, null);
 				return;
 			}
-			untyped x._lock = true;
+			@:privateAccess x._lock = true;
 			// If the table just has one key, and it's not set on this object, check for an auto-increment.
 			if( table_keys.length == 1 && Reflect.field(x,table_keys[0]) == null ) {
 				getCnx().lastInsertId(function (err, id) {
@@ -204,7 +204,7 @@ class BaseManager<T : Object> {
 	}
 
 	function doUpdateAsync( x : T, cb : Callback<T> ) {
-		if( untyped !x._lock )
+		if( @:privateAccess !x._lock )
 			throw "Cannot update a not locked object";
 		var upd = getUpdateStatement(x);
 		if (upd == null) return;
@@ -281,7 +281,7 @@ class BaseManager<T : Object> {
 	}
 
 	function doLockAsync( i : T, cb : CompletionCallback ) {
-		if( untyped i._lock ) {
+		if( @:privateAccess i._lock ) {
 			cb(null);
 			return;
 		}
@@ -405,7 +405,7 @@ class BaseManager<T : Object> {
 		untyped __dollar__objsetproto(o, class_proto.prototype);
 		#else
 		var o : T = Type.createEmptyInstance(cast class_proto);
-		untyped o._manager = this;
+		@:privateAccess o._manager = this;
 		#end
 		normalizeCache(x);
 		for (f in Reflect.fields(x) )
@@ -419,7 +419,7 @@ class BaseManager<T : Object> {
 		}
 		Reflect.setField(o,cache_field,x);
 		addToCache(o);
-		untyped o._lock = lock;
+		@:privateAccess o._lock = lock;
 		return o;
 	}
 
@@ -726,7 +726,7 @@ class BaseManager<T : Object> {
 			c._lock = true;
 			// restore our manager
 			#if !neko
-			untyped c._manager = this;
+			@:privateAccess c._manager = this;
 			#end
 			// use the new object as our cache of fields
 			Reflect.setField(c,cache_field,x);
