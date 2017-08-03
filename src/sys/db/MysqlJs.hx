@@ -6,14 +6,19 @@ import sys.db.AsyncConnection;
 typedef MysqlJsConnectionProps = {
     host : String,
     user : String,
-    password : String,
+    pass : String,
     database : String
 };
 
 @:jsRequire('mysql')
 extern class MysqlJs {
     public static inline function connect( connectionProps : MysqlJsConnectionProps, cb : Null<Error> -> Null<AsyncConnection> -> Void ) : Void {
-        var cnx = MysqlJs.createConnection(connectionProps);
+        var cnx = MysqlJs.createConnection({
+            host: connectionProps.host,
+            user: connectionProps.user,
+            password: connectionProps.pass,
+            database: connectionProps.database,
+        });
         cnx.connect(function (err) {
             if (err != null) {
                 cb(err, null);
@@ -23,7 +28,7 @@ extern class MysqlJs {
         });
     }
 
-    static function createConnection( connectionProps : MysqlJsConnectionProps ) : MysqlJsConnection;
+    static function createConnection( connectionProps : {host : String, user : String, password : String, database : String} ) : MysqlJsConnection;
 }
 
 extern class MysqlJsConnection {
