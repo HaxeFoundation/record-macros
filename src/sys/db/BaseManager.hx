@@ -563,7 +563,7 @@ class BaseManager<T : Object> {
 		return o == null ? null : Reflect.field(o, table_keys[0]);
 	}
 
-	static function nullCompare( dbName : String, a : String, b : String, eq : Bool ) {
+	static function getNullComparison( dbName : String, a : String, b : String, eq : Bool ) {
 		if (a == null || a == 'NULL') {
 			return eq ? '$b IS NULL' : '$b IS NOT NULL';
 		} else if (b == null || b == 'NULL') {

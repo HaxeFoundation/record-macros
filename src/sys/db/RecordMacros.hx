@@ -644,7 +644,7 @@ class RecordMacros {
 							var ename = epath.pop();
 							var etype = TPath({ name:ename, pack:epath });
 							if (r1.n) {
-								return { sql: macro @:privateAccess $baseManager.nullCompare(@:privateAccess ${managerInst}.getCnx().dbName(), ${r1.sql}, { var tmp = @:pos(e2.pos) (${e2} : $etype); tmp == null ? null : (std.Type.enumIndex(tmp) + ''); }, ${eq ? macro true : macro false}), t : DBool, n: true };
+								return { sql: macro @:privateAccess $baseManager.getNullComparison(@:privateAccess ${managerInst}.getCnx().dbName(), ${r1.sql}, { var tmp = @:pos(e2.pos) (${e2} : $etype); tmp == null ? null : (std.Type.enumIndex(tmp) + ''); }, ${eq ? macro true : macro false}), t : DBool, n: true };
 							} else {
 								var expr = macro { @:pos(e2.pos) var tmp : $etype = $e2; (tmp == null ? null : (std.Type.enumIndex(tmp) + '')); };
 								return { sql: makeOp(eq?" = ":" != ", r1.sql, expr, pos), t : DBool, n : r1.n };
@@ -672,7 +672,7 @@ class RecordMacros {
 		// use some different operators if there is a possibility for comparing two NULLs
 		if( r1.n || r2.n ) {
 			var trueOrFalse = eq ? macro true : macro false;
-			sql = macro @:pos(pos) @:privateAccess $baseManager.nullCompare(@:privateAccess ${managerInst}.getCnx().dbName(), ${r1.sql}, ${r2.sql}, ${trueOrFalse});
+			sql = macro @:pos(pos) @:privateAccess $baseManager.getNullComparison(@:privateAccess ${managerInst}.getCnx().dbName(), ${r1.sql}, ${r2.sql}, ${trueOrFalse});
 		}
 		else
 			sql = makeOp(eq?" = ":" != ", r1.sql, r2.sql, pos);

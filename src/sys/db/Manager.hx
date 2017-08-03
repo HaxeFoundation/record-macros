@@ -52,7 +52,7 @@ class Manager<T : Object> extends BaseManager<T> {
 	@deprecated This function is mostly for internal use but was previously exposed with a public API. It will likely be removed in a future version.
 	**/
 	public static function nullCompare( a : String, b : String, eq : Bool ) {
-		return BaseManager.nullCompare(cnx.dbName(), a, b, eq);
+		return BaseManager.getNullComparison(cnx.dbName(), a, b, eq);
 	}
 
 	/**
