@@ -781,6 +781,17 @@ class RecordMacros {
 				return buildInt("<<", e1, e2, p);
 			case OpMod:
 				return buildNum("%", e1, e2, p);
+			#if (haxe_ver >= 4)
+			case OpIn:
+				var e = buildCond(e1);
+				var t = TPath({
+					pack : [],
+					name : "Iterable",
+					params : [TPType(convertType(e.t))],
+					sub : null,
+				});
+				return { sql : { expr : ECall( { expr : EField(manager, "quoteList"), pos : p }, [e.sql, { expr : ECheckType(e2,t), pos : p } ]), pos : p }, t : DBool, n : e.n };
+			#end
 			case OpUShr, OpInterval, OpAssignOp(_), OpAssign, OpArrow:
 				error("Unsupported operation", p);
 			}
@@ -900,6 +911,7 @@ class RecordMacros {
 			unify(r2.t, r1.t, e2.pos);
 			unify(r1.t, r2.t, e1.pos);
 			return { sql : { expr : EIf(e, r1.sql, r2.sql), pos : p }, t : r1.t, n : r1.n || r2.n };
+		#if (haxe_ver < 4)
 		case EIn(e, v):
 			var e = buildCond(e);
 			var t = TPath({
@@ -909,6 +921,7 @@ class RecordMacros {
 				sub : null,
 			});
 			return { sql : { expr : ECall( { expr : EField(manager, "quoteList"), pos : p }, [e.sql, { expr : ECheckType(v,t), pos : p } ]), pos : p }, t : DBool, n : e.n };
+		#end
 		default:
 			return buildDefault(cond);
 		}

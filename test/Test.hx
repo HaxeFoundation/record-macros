@@ -595,7 +595,7 @@ class Test
 		eq(r2s.first().theId,id3);
 
 		var ids = [id1,id2,id3];
-		var s = [ for (c in MySpodClass.manager.search( $anEnum == SecondValue || $theId in ids )) c.theId ];
+		var s = [ for (c in MySpodClass.manager.search( $anEnum == SecondValue || ($theId in ids) )) c.theId ];
 		s.sort(Reflect.compare);
 		eq([id1,id2,id3].join(','),s.join(','));
 
