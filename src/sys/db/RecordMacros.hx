@@ -266,6 +266,8 @@ class RecordMacros {
 				default:
 				}
 			return makeType(follow(t, true));
+		case TLazy(f):
+			return makeType(f());
 		default:
 		}
 		throw "Unsupported Record Type " + Std.string(t);

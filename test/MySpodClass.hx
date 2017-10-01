@@ -107,3 +107,20 @@ abstract AbstractSpodTest<A>(A) from A
 @:keep class Issue6041Table extends Object {
 	public var id:SInt = 0;
 }
+
+// issue #<to be numbered>
+class TLazyIssueFoo extends sys.db.Object {
+	public var id:SId;
+	@:relation(bid) public var bar:TLazyIssueBar;
+
+	public function new(bar:TLazyIssueBar)
+	{
+		var lastFoo = TLazyIssueFoo.manager.select($bar == bar, { orderBy : -id, limit : 1 }, false);
+		super();
+	}
+}
+class TLazyIssueBar extends sys.db.Object {
+	public var id:SId;
+	public var initialized:SString<255> = "bar";
+}
+
