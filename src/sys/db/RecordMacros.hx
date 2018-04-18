@@ -1258,7 +1258,7 @@ class RecordMacros {
 		case TPType(t): t;
 		};
 		var pos = f.pos;
-		switch( p.name ) {
+		switch( p.sub != null ? p.sub : p.name ) {
 		case "SData":
 			f.kind = FProp("dynamic", "dynamic", rt, null);
 			f.meta.push( { name : ":data", params : [], pos : f.pos } );

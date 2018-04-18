@@ -124,3 +124,9 @@ class TLazyIssueBar extends sys.db.Object {
 	public var initialized:SString<255> = "bar";
 }
 
+
+@:keep class Issue19SpodClass extends Object {
+	public var id:SId;
+	public var anEnum:sys.db.Types.SEnum<SpodEnum>;
+}
+
