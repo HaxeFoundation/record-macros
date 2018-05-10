@@ -2,6 +2,8 @@ language: haxe
 sudo: false
 
 haxe:
+- development
+- 3.4.7
 - 3.4.2
 
 script:
