@@ -309,6 +309,7 @@ class RecordMacros {
 		}
 		for( f in fields ) {
 			fieldsPos.set(f.name, f.pos);
+			var caseSensitive:Null<Bool> = null;
 			switch( f.kind ) {
 			case FMethod(_):
 				// skip methods
@@ -317,12 +318,17 @@ class RecordMacros {
 				// skip not-db fields
 				if( f.meta.has(":skip") )
 					continue;
-				// handle relations
-				if( f.meta.has(":relation") ) {
-					if( !Type.enumEq(g,AccCall) || !Type.enumEq(s,AccCall) )
-						error("Relation should be (dynamic,dynamic)", f.pos);
-					for( m in f.meta.get() ) {
-						if( m.name != ":relation" ) continue;
+				for( m in f.meta.get() ) {
+					switch( m.name ) {
+					case ":caseSensitive":
+						if( m.params.length < 1 ) error(":caseSensitive should specify 'true', 'false' or 'default'", m.pos);
+						switch( makeIdent(m.params[0]) ) {
+						case "true": caseSensitive = true;
+						case "false": caseSensitive = false;
+						case "default": caseSensitive = null;
+						default: error(":caseSensitive should specify 'true', 'false' or 'default'", m.pos);
+						}
+					case ":relation":
 						if( m.params.length == 0 ) error("Missing relation key", m.pos);
 						var params = [];
 						for( p in m.params )
@@ -338,7 +344,7 @@ class RecordMacros {
 							module : mod,
 							cascade : false,
 							lock : false,
-							isNull : isNull,
+							isNull : isNull
 						};
 						// setup flags
 						for( p in params )
@@ -349,8 +355,14 @@ class RecordMacros {
 							}
 						i.relations.push(r);
 					}
+				}
+				// handle relations
+				if( f.meta.has(":relation") ) {
+					if( !Type.enumEq(g,AccCall) || !Type.enumEq(s,AccCall) )
+						error("Relation should be (dynamic,dynamic)", f.pos);
 					continue;
 				}
+
 				switch( g ) {
 				case AccCall:
 					if( !f.meta.has(":data") )
@@ -363,6 +375,7 @@ class RecordMacros {
 				name : f.name,
 				t : try makeType(f.type) catch( e : String ) error(e,f.pos),
 				isNull : isNull,
+				caseSensitive: caseSensitive
 			};
 			var isId = switch( fi.t ) {
 			case DId, DUId, DBigId: true;
@@ -406,6 +419,7 @@ class RecordMacros {
 					name : r.key,
 					t : relatedKeyType,
 					isNull : r.isNull,
+					caseSensitive: null
 				};
 				i.fields.push(f);
 				i.hfields.set(f.name, f);

@@ -84,7 +84,24 @@ class TableCreate {
 					throw "S" + Std.string(f.t).substr(1)+" is not supported by " + dbName + " : use SId instead";
 			default:
 			}
-			decls.push(quote(f.name)+" "+getTypeSQL(f.t,dbName)+(f.isNull ? "" : " NOT NULL"));
+
+			var dataType = quote(f.name)+" "+getTypeSQL(f.t,dbName);
+
+			if( f.isNull == false )
+				dataType += " NOT NULL";
+
+			if( f.caseSensitive != null ) {
+				if( dbName == "SQLite" ) {
+					if( f.caseSensitive == false )
+						dataType += " COLLATE NOCASE";
+
+				} else {
+					if( f.caseSensitive == true )
+						dataType += " COLLATE binary";
+				}
+			}
+
+			decls.push(dataType);
 		}
 		if( dbName != "SQLite" || !hasID )
 			decls.push("PRIMARY KEY ("+Lambda.map(infos.key,quote).join(",")+")");
