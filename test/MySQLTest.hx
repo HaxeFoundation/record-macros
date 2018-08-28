@@ -9,21 +9,14 @@ import hex.unittest.runner.*;
 
 using Lambda;
 
-class Test
+class MySQLTest
 {
-	static function main() {
-		var emu = new ExMachinaUnitCore();
-		emu.addListener(new ConsoleNotifier(false));
-		emu.addListener(new ExitingNotifier());
-		emu.addTest(Test);
-		emu.run();
-	}
 
 	@Before
 	public function before()
 	{
 		Manager.initialize();
-		Manager.cnx = sys.db.Sqlite.open("test.sqlite");
+		Manager.cnx = sys.db.Mysql.connect({host:"localhost",user:"test",pass:"test",database:"test"});
 		try Manager.cnx.request('DROP TABLE MySpodClass') catch(e:Dynamic) {}
 		try Manager.cnx.request('DROP TABLE OtherSpodClass') catch(e:Dynamic) {}
 		try Manager.cnx.request('DROP TABLE NullableSpodClass') catch(e:Dynamic) {}
