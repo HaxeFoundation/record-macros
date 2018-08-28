@@ -8,7 +8,7 @@ haxe:
 
 before_install:
 #install php 7.2 on ubuntu trusty
-- sudo add-apt-repository ppa:ondrej/php
+- sudo add-apt-repository ppa:ondrej/php -y
 - sudo apt-get update
 - sudo apt-get install -y php7.2
 
