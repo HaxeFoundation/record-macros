@@ -350,3 +350,8 @@ You can get the database schema by calling the `.dbInfos()` method on the Manage
 ## Automatic Insert/Search/Edit Generation
 The [dbadmin](https://github.com/ncannasse/dbadmin) project provides an HTML based interface that allows inserting/searching/editing and deleting `record-macros` objects based on the compiled `record-macros` information. It also allows database synchronization based on the `record-macros` schema by automatically detecting differences between the compile time schema and the current DB one.
 
+## Compatibility
+When using MySQL 5.7+, consider disabling [strict mode](https://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sql-mode-strict). Record-macros do not provide sufficient checks (strings length,field default values...) to avoid errors in strict mode.
+
+
+
