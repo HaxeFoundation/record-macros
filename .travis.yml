@@ -7,7 +7,10 @@ haxe:
 - 3.4.2
 
 php:
-- '7.2'
+- '7.1'
+
+before_script: phpenv config-add phpconfig.ini
+
 
 install:
 - haxelib install all --always
