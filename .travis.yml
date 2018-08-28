@@ -1,15 +1,16 @@
 language: haxe
-sudo: false
+sudo: true
 
 haxe:
 - development
 - 3.4.7
 - 3.4.2
 
-php:
-- '7.1'
-
-before_script: phpenv config-add phpconfig.ini
+before_install:
+#install php 7.2 on ubuntu trusty
+- sudo add-apt-repository ppa:ondrej/php
+- sudo apt-get update
+- sudo apt-get install php7.2
 
 
 install:
@@ -18,5 +19,6 @@ install:
 script:
 - haxe test.hxml
 - neko test.n
+- php -v
 - haxe testPHP.hxml
 - php index.php
