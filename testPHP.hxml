@@ -1,0 +1,6 @@
+-cp src
+-cp test
+-lib hexunit:0.35.0
+-main Test
+-D php7
+-php ./
