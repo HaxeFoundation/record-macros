@@ -17,6 +17,7 @@ class MySQLTest
 	{
 		Manager.initialize();
 		Manager.cnx = sys.db.Mysql.connect({host:"localhost",user:"test",pass:"test",database:"test"});
+		
 		try Manager.cnx.request('DROP TABLE MySpodClass') catch(e:Dynamic) {}
 		try Manager.cnx.request('DROP TABLE OtherSpodClass') catch(e:Dynamic) {}
 		try Manager.cnx.request('DROP TABLE NullableSpodClass') catch(e:Dynamic) {}
@@ -84,6 +85,11 @@ class MySQLTest
 		return scls;
 	}
 
+	private function getNull<T>():Null<T> {
+		return null;
+	}
+
+	#if !php
 	@Test
 	public function testNull() {
 		var n1 = getDefaultNull();
@@ -145,9 +151,7 @@ class MySQLTest
 		}
 	}
 
-	private function getNull<T>():Null<T> {
-		return null;
-	}
+	
 
 	@Test
 	public function testIssue3828()
@@ -497,6 +501,7 @@ class MySQLTest
 		c2.delete();
 		other1.delete();
 	}
+	
 
 	@Test
 	public function testData()
@@ -535,6 +540,7 @@ class MySQLTest
 		c1.delete();
 		other1.delete();
 	}
+	#end
 
 	/**
 		Check that relations are not affected by the analyzer
