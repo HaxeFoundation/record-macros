@@ -9,21 +9,14 @@ import hex.unittest.runner.*;
 
 using Lambda;
 
-class Test
+class MySQLTest
 {
-	static function main() {
-		var emu = new ExMachinaUnitCore();
-		emu.addListener(new ConsoleNotifier(false));
-		emu.addListener(new ExitingNotifier());
-		emu.addTest(Test);
-		emu.run();
-	}
 
 	@Before
 	public function before()
 	{
-		Manager.initialize();
-		Manager.cnx = sys.db.Sqlite.open("test.sqlite");
+		connectDb();
+		
 		try Manager.cnx.request('DROP TABLE MySpodClass') catch(e:Dynamic) {}
 		try Manager.cnx.request('DROP TABLE OtherSpodClass') catch(e:Dynamic) {}
 		try Manager.cnx.request('DROP TABLE NullableSpodClass') catch(e:Dynamic) {}
@@ -46,6 +39,25 @@ class Test
 	public function after()
 	{
 		Manager.cnx.close();
+	}
+
+	function connectDb() {
+		var dbstr = Sys.args()[0];
+		var dbreg = ~/([^:]+):\/\/([^:]+):([^@]*?)@([^:]+)(:[0-9]+)?\/(.*?)$/;
+		if( !dbreg.match(dbstr) )
+			throw "Configuration requires a valid database attribute, format is : mysql://user:password@host:port/dbname";
+		var port = dbreg.matched(5);
+		var dbparams = {
+			user:dbreg.matched(2),
+			pass:dbreg.matched(3),
+			host:dbreg.matched(4),
+			port:port == null ? 3306 : Std.parseInt(port.substr(1)),
+			database:dbreg.matched(6),
+			socket:null
+		};
+		
+		sys.db.Manager.cnx = sys.db.Mysql.connect(dbparams);
+		sys.db.Manager.initialize();
 	}
 
 	function getDefaultClass()
@@ -91,6 +103,12 @@ class Test
 		return scls;
 	}
 
+	private function getNull<T>():Null<T> {
+		return null;
+	}
+
+	#if !php
+	//TODO : these tests fail with PHP 7 and haxe 3.4.7
 	@Test
 	public function testNull() {
 		var n1 = getDefaultNull();
@@ -152,9 +170,7 @@ class Test
 		}
 	}
 
-	private function getNull<T>():Null<T> {
-		return null;
-	}
+	
 
 	@Test
 	public function testIssue3828()
@@ -410,10 +426,7 @@ class Test
 		Assert.equals("other string", cls1.abstractType.get(), pos());
 		Assert.isNotNull(cls1.date, pos());
 		Assert.isInstanceOf(cls1.date, Date, pos());
-		#if !php
-		// TODO : this fails with PHP7
 		Assert.equals(new Date(2012, 7, 30, 0, 0, 0).getTime(), cls1.date.getTime(), pos());
-		#end
 
 		Assert.isInstanceOf(cls1.binary, Bytes, pos());
 		Assert.equals(0, cls1.binary.compare(Bytes.ofString("\x01\n\r'\x02")), pos());
@@ -487,10 +500,8 @@ class Test
 		c2.date = DateTools.delta(now, DateTools.hours(1));
 		c2.insert();
 
-		#if !php
-		// TODO : this fails with PHP7
 		var q = MySpodClass.manager.search($date > now);
-		Assert.equals(1, q.length, pos());		
+		Assert.equals(1, q.length, pos());
 		Assert.equals(c2, q.first(), pos());
 
 		q = MySpodClass.manager.search($date == now);
@@ -504,12 +515,12 @@ class Test
 		q = MySpodClass.manager.search($date >= DateTools.delta(now, DateTools.hours(2)));
 		Assert.equals(0, q.length, pos());
 		Assert.isNull(q.first(), pos());
-		#end
 
 		c1.delete();
 		c2.delete();
 		other1.delete();
 	}
+	
 
 	@Test
 	public function testData()
@@ -548,6 +559,7 @@ class Test
 		c1.delete();
 		other1.delete();
 	}
+	#end
 
 	/**
 		Check that relations are not affected by the analyzer
