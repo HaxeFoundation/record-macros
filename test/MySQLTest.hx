@@ -108,6 +108,7 @@ class MySQLTest
 	}
 
 	#if !php
+	//TODO : these tests fail with PHP 7 and haxe 3.4.7
 	@Test
 	public function testNull() {
 		var n1 = getDefaultNull();
