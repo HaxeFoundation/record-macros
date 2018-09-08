@@ -561,6 +561,25 @@ class SQLiteTest
 		Assert.equals("i", parent.relation.name);
 	}
 
+	@Test
+	public function testStringConcatenation()
+	{
+		var other1 = new OtherSpodClass("required field");
+		other1.insert();
+
+		var c1 = getDefaultClass();
+		c1.string = "testData4";
+		c1.int = 4;
+		c1.relation = other1;
+		c1.insert();
+
+		var q = MySpodClass.manager.select($string == "test"+"Data"+$int);
+		Assert.isNotNull(q);
+
+		c1.delete();
+		other1.delete();
+	}
+
 	private function pos(?p:haxe.PosInfos):haxe.PosInfos
 	{
 		p.fileName = p.fileName + "(" + Manager.cnx.dbName()  +")";
