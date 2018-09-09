@@ -97,7 +97,7 @@ class TableCreate {
 
 				} else {
 					if( f.caseSensitive == true )
-						dataType += " COLLATE binary";
+						dataType += " COLLATE `binary`";
 				}
 			}
 
