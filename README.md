@@ -58,6 +58,7 @@ You can add Metadata to your `record-macros` class to declare additional informa
 Before each class field :
 
   * `@:skip` : ignore this field, which will not be part of the database schema
+  * `@:caseSensitive(true/false/default)` : set whether a text field is case-sensitive, or left to default database behaviour (the default). Note that with MySQL case-insensitive is achieved with `COLLATE binary`.
   * `@:relation` : declare this field as a relation (see specific section below)
 
 Before the `record-macros` class :

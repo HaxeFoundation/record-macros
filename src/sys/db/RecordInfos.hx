@@ -63,6 +63,7 @@ typedef RecordField = {
 	var name : String;
 	var t : RecordType;
 	var isNull : Bool;
+	var caseSensitive : Null<Bool>;
 }
 
 typedef RecordRelation = {

@@ -124,3 +124,27 @@ class TLazyIssueBar extends sys.db.Object {
 	public var initialized:SString<255> = "bar";
 }
 
+@:keep class CaseSensitiveClass extends Object
+{
+	public var id:SId;
+
+	@:caseSensitive(true)
+	public var sensitive:SString<255>;
+
+	@:caseSensitive(false)
+	public var insensitive:SString<255>;
+
+	@:caseSensitive('default')
+	public var defaultSensitivity:SString<255>;
+
+	public var unspecifiedSensitivity:SString<255>;
+
+	public function new(string:String)
+	{
+		super();
+		sensitive = string;
+		insensitive = string;
+		defaultSensitivity = string;
+		unspecifiedSensitivity = string;
+	}
+}
