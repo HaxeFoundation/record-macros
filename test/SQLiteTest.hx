@@ -24,6 +24,7 @@ class SQLiteTest
 		try Manager.cnx.request('DROP TABLE ClassWithStringIdRef') catch(e:Dynamic) {}
 		try Manager.cnx.request('DROP TABLE IssueC3828') catch(e:Dynamic) {}
 		try Manager.cnx.request('DROP TABLE Issue6041Table') catch(e:Dynamic) {}
+		try Manager.cnx.request('DROP TABLE CaseSensitiveClass') catch(e:Dynamic) {}
 		TableCreate.create(MySpodClass.manager);
 		TableCreate.create(OtherSpodClass.manager);
 		TableCreate.create(NullableSpodClass.manager);
@@ -31,6 +32,7 @@ class SQLiteTest
 		TableCreate.create(ClassWithStringIdRef.manager);
 		TableCreate.create(IssueC3828.manager);
 		TableCreate.create(Issue6041Table.manager);
+		TableCreate.create(CaseSensitiveClass.manager);
 
 		Manager.cleanup();
 	}
@@ -559,6 +561,30 @@ class SQLiteTest
 
 		Assert.isNotNull(parent.relation);
 		Assert.equals("i", parent.relation.name);
+	}
+
+	@Test
+	public function testCaseSensitivity()
+	{
+		var c1 = new CaseSensitiveClass('TestString');
+		c1.insert();
+
+		//test sensitive
+		Assert.isNotNull(CaseSensitiveClass.manager.select($sensitive == 'TestString'));
+		Assert.isNull(CaseSensitiveClass.manager.select($sensitive == 'teststring'));
+		Assert.isNull(CaseSensitiveClass.manager.select($sensitive == 'TESTSTRING'));
+
+		//test insensitive
+		Assert.isNotNull(CaseSensitiveClass.manager.select($insensitive == 'TestString'));
+		Assert.isNotNull(CaseSensitiveClass.manager.select($insensitive == 'teststring'));
+		Assert.isNotNull(CaseSensitiveClass.manager.select($insensitive == 'TESTSTRING'));
+
+		//test default
+		Assert.equals(CaseSensitiveClass.manager.select($defaultSensitivity == 'TestString') == null, CaseSensitiveClass.manager.select($unspecifiedSensitivity == 'TestString') == null);
+		Assert.equals(CaseSensitiveClass.manager.select($defaultSensitivity == 'teststring') == null, CaseSensitiveClass.manager.select($unspecifiedSensitivity == 'teststring') == null);
+		Assert.equals(CaseSensitiveClass.manager.select($defaultSensitivity == 'TESTSTRING') == null, CaseSensitiveClass.manager.select($unspecifiedSensitivity == 'TESTSTRING') == null);
+
+		c1.delete();
 	}
 
 	private function pos(?p:haxe.PosInfos):haxe.PosInfos

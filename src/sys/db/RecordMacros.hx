@@ -284,6 +284,18 @@ class RecordMacros {
 		}
 	}
 
+	function parseWord( e : Expr ) {
+		return switch( e.expr ) {
+		case EConst(c):
+			switch( c ) {
+			case CIdent(s): s;
+			case CString(s): s;
+			default: error("Identifier or string expected", e.pos);
+			}
+		default: error("Identifier or string expected", e.pos);
+		}
+	}
+
 	function getRecordInfos( c : haxe.macro.Type.Ref<haxe.macro.Type.ClassType> ) : RecordInfos {
 		var cname = c.toString();
 		var i = g.cache.get(cname);
@@ -321,12 +333,12 @@ class RecordMacros {
 				for( m in f.meta.get() ) {
 					switch( m.name ) {
 					case ":caseSensitive":
-						if( m.params.length < 1 ) error(":caseSensitive should specify 'true', 'false' or 'default'", m.pos);
-						switch( makeIdent(m.params[0]) ) {
+						if( m.params.length < 1 ) error(":caseSensitive should specify 'true', 'false' or '\"default\"'", m.pos);
+						switch( parseWord(m.params[0]) ) {
 						case "true": caseSensitive = true;
 						case "false": caseSensitive = false;
 						case "default": caseSensitive = null;
-						default: error(":caseSensitive should specify 'true', 'false' or 'default'", m.pos);
+						default: error(":caseSensitive should specify 'true', 'false' or '\"default\"'", m.pos);
 						}
 					case ":relation":
 						if( m.params.length == 0 ) error("Missing relation key", m.pos);
