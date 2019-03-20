@@ -28,7 +28,6 @@ import sys.db.RecordInfos;
 	Record Manager : the persistent object database manager. See the tutorial on
 	Haxe website to learn how to use Record.
 **/
-#if !macro @:build(sys.db.RecordMacros.addRtti()) #end
 class Manager<T : Object> {
 
 	/* ----------------------------- STATICS ------------------------------ */
