@@ -107,8 +107,6 @@ class MySQLTest
 		return null;
 	}
 
-	#if !php
-	//TODO : these tests fail with PHP 7 and haxe 3.4.7
 	@Test
 	public function testNull() {
 		var n1 = getDefaultNull();
@@ -559,7 +557,6 @@ class MySQLTest
 		c1.delete();
 		other1.delete();
 	}
-	#end
 
 	/**
 		Check that relations are not affected by the analyzer

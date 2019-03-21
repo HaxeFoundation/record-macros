@@ -1,8 +1,9 @@
 -cp src
 -cp test
--lib hexunit:0.35.0
+-lib hexunit
 -lib jstack
 -main Main
 -D php7
 -D JSTACK_FORCE
 -php ./
+--macro include('hex')
