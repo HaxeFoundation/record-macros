@@ -24,6 +24,7 @@ class SQLiteTest
 		try Manager.cnx.request('DROP TABLE ClassWithStringIdRef') catch(e:Dynamic) {}
 		try Manager.cnx.request('DROP TABLE IssueC3828') catch(e:Dynamic) {}
 		try Manager.cnx.request('DROP TABLE Issue6041Table') catch(e:Dynamic) {}
+		try Manager.cnx.request('DROP TABLE Issue19SpodClass') catch(e:Dynamic) {}
 		TableCreate.create(MySpodClass.manager);
 		TableCreate.create(OtherSpodClass.manager);
 		TableCreate.create(NullableSpodClass.manager);
@@ -559,6 +560,13 @@ class SQLiteTest
 
 		Assert.isNotNull(parent.relation);
 		Assert.equals("i", parent.relation.name);
+	}
+
+	public function testIssue19()
+	{
+		var val = new Issue19SpodClass();
+		val.anEnum = SecondValue;
+		val.insert();
 	}
 
 	private function pos(?p:haxe.PosInfos):haxe.PosInfos
