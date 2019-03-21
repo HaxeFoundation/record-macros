@@ -467,8 +467,7 @@ class RecordMacros {
 	}
 
 	function quoteField( f : String ) {
-		var m : { private var KEYWORDS : haxe.ds.StringMap<Bool>; } = Manager;
-		return m.KEYWORDS.exists(f.toLowerCase()) ? "`"+f+"`" : f;
+		return Manager.KEYWORDS.exists(f.toLowerCase()) ? "`"+f+"`" : f;
 	}
 
 	function initManager( pos : Position ) {
@@ -1103,6 +1102,7 @@ class RecordMacros {
 	public static function addRtti() : Array<Field> {
 		if( RTTI ) return null;
 		RTTI = true;
+		#if (haxe_ver < 4)
 		if( FIRST_COMPILATION ) {
 			FIRST_COMPILATION = false;
 			Context.onMacroContextReused(function() {
@@ -1111,6 +1111,7 @@ class RecordMacros {
 				return true;
 			});
 		}
+		#end
 		Context.getType("sys.db.RecordInfos");
 		Context.onGenerate(function(types) {
 			for( t in types )
@@ -1134,7 +1135,6 @@ class RecordMacros {
 				default:
 				}
 		});
-		Context.registerModuleReuseCall("sys.db.Manager", "sys.db.RecordMacros.addRtti()");
 		return null;
 	}
 
@@ -1433,6 +1433,7 @@ class RecordMacros {
 			var enew = { expr : ENew( { pack : ["sys", "db"], name : "Manager", sub : null, params : [TPType(tinst)] }, [Context.parse(path, p)]), pos : p }
 			fields.push({ name : "manager", meta : [], kind : FVar(null,enew), doc : null, access : [AStatic,APublic], pos : p });
 		}
+		addRtti();
 		return fields;
 	}
 
