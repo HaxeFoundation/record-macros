@@ -1,0 +1,1 @@
+--macro addGlobalMetadata("Date.toString", "@:keep", false, false, true)

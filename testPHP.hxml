@@ -1,4 +1,4 @@
--cp src
+-lib record-macros
 -cp test
 -lib hexunit:0.35.0
 -lib jstack

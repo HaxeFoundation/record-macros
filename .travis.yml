@@ -19,6 +19,7 @@ services:
 
 install:
 - haxelib install all --always
+- haxelib dev record-macros .
 
 script:
 - haxe test.hxml
