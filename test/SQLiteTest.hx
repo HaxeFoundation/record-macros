@@ -563,6 +563,28 @@ class SQLiteTest
 		val.insert();
 	}
 
+	@Test("Test that cache management doesn't break @:skip fields")
+	public function testIssue34()
+	{
+		var child = new OtherSpodClass("i");
+		child.insert();
+		var main = getDefaultClass();
+		main.relation = child;
+		main.insert();
+		Manager.cleanup();
+
+		// underlying problem
+		child = OtherSpodClass.manager.all(false).first();
+		child = OtherSpodClass.manager.all(true).first();
+		Assert.isNull(child.ignored);
+
+		// reported/real world case
+		main = MySpodClass.manager.all().first();
+		Assert.isNotNull(main.relation);  // cache child, but !lock
+		child = OtherSpodClass.manager.all().first();  // cache and lock
+		Assert.isNull(child.ignored);
+	}
+
 	private function pos(?p:haxe.PosInfos):haxe.PosInfos
 	{
 		p.fileName = p.fileName + "(" + Manager.cnx.dbName()  +")";

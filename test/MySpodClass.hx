@@ -58,6 +58,8 @@ import sys.db.Types;
 	public var theid:SInt;
 	public var name:SString<255>;
 
+	@:skip public var ignored:String;
+
 	public function new(name:String)
 	{
 		super();

@@ -670,7 +670,7 @@ class Manager<T : Object> {
 		if( c != null && lock && !c._lock ) {
 			// synchronize the fields since our result is up-to-date !
 			for( f in Reflect.fields(c) )
-				Reflect.deleteField(c,f);
+				Reflect.setField(c,f,null);
 			for (f in table_infos.fields)
 			{
 				var name = f.name,
