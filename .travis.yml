@@ -12,6 +12,7 @@ before_install:
 - sudo apt-get update
 - sudo apt-get install -y php7.2
 - sudo apt-get install -y php7.2-mbstring
+- sudo apt-get install -y php7.2-sqlite3
 #create database in mysql5.6
 - mysql -e 'CREATE DATABASE IF NOT EXISTS test;'
 
