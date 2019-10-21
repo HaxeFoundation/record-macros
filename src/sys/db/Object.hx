@@ -27,6 +27,7 @@ package sys.db;
 **/
 @:keepSub
 @:autoBuild(sys.db.RecordMacros.macroBuild()) @:skipFields
+#if ((haxe_ver < 4.0) && php) @:native("sys.db.Object_hx") #end
 class Object {
 
 	var _lock(default,never) : Bool;
