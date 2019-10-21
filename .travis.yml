@@ -11,6 +11,7 @@ before_install:
 - sudo add-apt-repository ppa:ondrej/php -y
 - sudo apt-get update
 - sudo apt-get install -y php7.2
+- sudo apt-get install -y php7.2-mbstring
 #create database in mysql5.6
 - mysql -e 'CREATE DATABASE IF NOT EXISTS test;'
 
