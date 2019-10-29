@@ -15,9 +15,9 @@ class Main {
 		emu.addListener(new ExitingNotifier());
 
 		// use addRuntimeTest so the inheritance chain is followed
-		emu.addRuntimeTest(SQLiteTest);
 		if(mysqlConnection != null)
 			emu.addRuntimeTest(MySQLTest);
+		emu.addRuntimeTest(SQLiteTest);
 
 		emu.run();
 	}
