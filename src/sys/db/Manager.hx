@@ -669,8 +669,13 @@ class Manager<T : Object> {
 		var c : Dynamic = object_cache.get(makeCacheKey(x));
 		if( c != null && lock && !c._lock ) {
 			// synchronize the fields since our result is up-to-date !
-			for( f in Reflect.fields(c) )
-				Reflect.setField(c,f,null);
+			for( f in Reflect.fields(c) ) {
+				try {
+					Reflect.setField(c,f,null);
+				} catch (_:Dynamic) {
+					// hack: ignore non-physical fields on hxcpp
+				}
+			}
 			for (f in table_infos.fields)
 			{
 				var name = f.name,
