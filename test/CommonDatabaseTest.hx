@@ -1,13 +1,13 @@
 import MySpodClass;
 import haxe.EnumFlags;
 import haxe.io.Bytes;
-import hex.unittest.assertion.Assert;
+import utest.Assert;
 import sys.db.*;
 import sys.db.Types;
 
 using Lambda;
 
-class CommonDatabaseTest {
+class CommonDatabaseTest extends utest.Test {
 	function connect()
 	{
 		throw "Not implemented";
@@ -24,8 +24,7 @@ class CommonDatabaseTest {
 		Issue19SpodClass
 	];
 
-	@Before
-	public function before()
+	public function setup()
 	{
 		Manager.initialize();
 		connect();
@@ -43,10 +42,13 @@ class CommonDatabaseTest {
 		Manager.cleanup();
 	}
 
-	@After
-	public function after()
+	public function teardown()
 	{
 		Manager.cnx.close();
+	}
+
+	function assertIsInstanceOf(v:Dynamic, t:Dynamic, ?pos:haxe.PosInfos) {
+		Assert.isTrue(Std.is(v, t), pos);
 	}
 
 	function getDefaultClass()
@@ -92,7 +94,6 @@ class CommonDatabaseTest {
 		return scls;
 	}
 
-	@Test
 	public function testNull() {
 		var n1 = getDefaultNull();
 		n1.insert();
@@ -157,7 +158,6 @@ class CommonDatabaseTest {
 		return null;
 	}
 
-	@Test
 	public function testIssue3828()
 	{
 		var u1 = new IssueC3828();
@@ -175,7 +175,6 @@ class CommonDatabaseTest {
 		Assert.equals(u2id, u2.id);
 	}
 
-	@Test
 	public function testIssue6041()
 	{
 		var item = new Issue6041Table();
@@ -188,7 +187,6 @@ class CommonDatabaseTest {
 		Assert.equals(0, amount);
 	}
 
-	@Test
 	public function testStringIdRel()
 	{
 		var s = new ClassWithStringId();
@@ -241,7 +239,6 @@ class CommonDatabaseTest {
 		for (r in frel) r.delete();
 	}
 
-	@Test
 	public function testEnum()
 	{
 		var c1 = new OtherSpodClass("first spod");
@@ -272,7 +269,7 @@ class CommonDatabaseTest {
 
 		Manager.cleanup();
 		var r1s = [ for (c in MySpodClass.manager.search($anEnum == SecondValue,{orderBy:theId})) c.theId ];
-		Assert.deepEquals(r1s, [id1, id2]);
+		Assert.same(r1s, [id1, id2]);
 		var r2s = MySpodClass.manager.search($anEnum == FirstValue);
 		Assert.equals(1, r2s.length);
 		Assert.equals(id3, r2s.first().theId);
@@ -281,7 +278,7 @@ class CommonDatabaseTest {
 
 		var fv = getSecond();
 		var r1s = [ for (c in MySpodClass.manager.search($anEnum == fv,{orderBy:theId})) c.theId ];
-		Assert.deepEquals(r1s, [id1, id2]);
+		Assert.same(r1s, [id1, id2]);
 		var r2s = MySpodClass.manager.search($anEnum == getFirst());
 		Assert.equals(1, r2s.length);
 		Assert.equals(id3, r2s.first().theId);
@@ -289,7 +286,7 @@ class CommonDatabaseTest {
 		var ids = [id1,id2,id3];
 		var s = [ for (c in MySpodClass.manager.search( $anEnum == SecondValue || ($theId in ids) )) c.theId ];
 		s.sort(Reflect.compare);
-		Assert.deepEquals(s, [id1, id2, id3]);
+		Assert.same(s, [id1, id2, id3]);
 
 		r2s.first().delete();
 		for (v in MySpodClass.manager.search($anEnum == fv)) v.delete();
@@ -305,7 +302,6 @@ class CommonDatabaseTest {
 		return SecondValue;
 	}
 
-	@Test
 	public function testUpdate()
 	{
 		var c1 = new OtherSpodClass("first spod");
@@ -366,12 +362,11 @@ class CommonDatabaseTest {
 
 		scls = new NullableSpodClass();
 		scls.theId = id;
-		Assert.isNotNull(untyped NullableSpodClass.manager.getUpdateStatement(scls));
+		Assert.notNull(untyped NullableSpodClass.manager.getUpdateStatement(scls));
 
 		scls.delete();
 	}
 
-	@Test
 	public function testSpodTypes()
 	{
 		var c1 = new OtherSpodClass("first spod");
@@ -386,59 +381,59 @@ class CommonDatabaseTest {
 		scls.insert();
 
 		//after inserting, id must be filled
-		Assert.notEquals(0, scls.theId, pos());
-		Assert.isNotNull(scls.theId);
+		Assert.notEquals(0, scls.theId);
+		Assert.notNull(scls.theId);
 		var theid = scls.theId;
 
 		c1 = c2 = null;
 		Manager.cleanup();
 
 		var cls1 = MySpodClass.manager.get(theid);
-		Assert.isNotNull(cls1, pos());
+		Assert.notNull(cls1);
 		//after Manager.cleanup(), the instances should be different
-		Assert.isFalse(cls1 == scls, pos());
+		Assert.isFalse(cls1 == scls);
 		scls = null;
 
-		Assert.isInstanceOf(cls1.int, Int, pos());
-		Assert.equals(1, cls1.int, pos());
-		Assert.isInstanceOf(cls1.double, Float, pos());
-		Assert.equals(2.0, cls1.double, pos());
-		Assert.isInstanceOf(cls1.boolean, Bool, pos());
-		Assert.isTrue(cls1.boolean, pos());
-		Assert.isInstanceOf(cls1.string, String, pos());
-		Assert.equals("some string", cls1.string, pos());
-		Assert.isInstanceOf(cls1.abstractType, String, pos());
-		Assert.equals("other string", cls1.abstractType.get(), pos());
-		Assert.isNotNull(cls1.date, pos());
-		Assert.isInstanceOf(cls1.date, Date, pos());
+		assertIsInstanceOf(cls1.int, Int);
+		Assert.equals(1, cls1.int);
+		assertIsInstanceOf(cls1.double, Float);
+		Assert.equals(2.0, cls1.double);
+		assertIsInstanceOf(cls1.boolean, Bool);
+		Assert.isTrue(cls1.boolean);
+		assertIsInstanceOf(cls1.string, String);
+		Assert.equals("some string", cls1.string);
+		assertIsInstanceOf(cls1.abstractType, String);
+		Assert.equals("other string", cls1.abstractType.get());
+		Assert.notNull(cls1.date);
+		assertIsInstanceOf(cls1.date, Date);
 		#if (haxe_ver > 3.407)
-		Assert.equals(new Date(2012, 7, 30, 0, 0, 0).getTime(), cls1.date.getTime(), pos());
+		Assert.equals(new Date(2012, 7, 30, 0, 0, 0).getTime(), cls1.date.getTime());
 		#else
 		// see haxe#6530 ("[cpp] fix Mysql.secondsToDate: Date.fromTime expects milliseconds")
 		#end
 
-		Assert.isInstanceOf(cls1.binary, Bytes, pos());
-		Assert.equals(0, cls1.binary.compare(Bytes.ofString("\x01\n\r'\x02")), pos());
-		Assert.isTrue(cls1.enumFlags.has(FirstValue), pos());
-		Assert.isFalse(cls1.enumFlags.has(SecondValue), pos());
-		Assert.isTrue(cls1.enumFlags.has(ThirdValue), pos());
+		assertIsInstanceOf(cls1.binary, Bytes);
+		Assert.equals(0, cls1.binary.compare(Bytes.ofString("\x01\n\r'\x02")));
+		Assert.isTrue(cls1.enumFlags.has(FirstValue));
+		Assert.isFalse(cls1.enumFlags.has(SecondValue));
+		Assert.isTrue(cls1.enumFlags.has(ThirdValue));
 
-		Assert.isInstanceOf(cls1.data, Array, pos());
-		Assert.isInstanceOf(cls1.data[0], ComplexClass, pos());
+		assertIsInstanceOf(cls1.data, Array);
+		assertIsInstanceOf(cls1.data[0], ComplexClass);
 
-		Assert.equals("test", cls1.data[0].val.name, pos());
-		Assert.equals(4, cls1.data[0].val.array.length, pos());
-		Assert.equals("is", cls1.data[0].val.array[1], pos());
+		Assert.equals("test", cls1.data[0].val.name);
+		Assert.equals(4, cls1.data[0].val.array.length);
+		Assert.equals("is", cls1.data[0].val.array[1]);
 
-		Assert.equals("first spod", cls1.relation.name, pos());
-		Assert.equals("second spod", cls1.relationNullable.name, pos());
+		Assert.equals("first spod", cls1.relation.name);
+		Assert.equals("second spod", cls1.relationNullable.name);
 
-		Assert.equals(SecondValue, cls1.anEnum, pos());
-		Assert.isInstanceOf(cls1.anEnum, SpodEnum, pos());
+		Assert.equals(SecondValue, cls1.anEnum);
+		assertIsInstanceOf(cls1.anEnum, SpodEnum);
 
 		Assert.equals("\000a", cls1.bytes.toString());
 
-		Assert.equals(MySpodClass.manager.select($anEnum == SecondValue), cls1, pos());
+		Assert.equals(MySpodClass.manager.select($anEnum == SecondValue), cls1);
 
 		//test create a new class
 		var scls = getDefaultClass();
@@ -452,15 +447,15 @@ class CommonDatabaseTest {
 		scls = cls1 = null;
 		Manager.cleanup();
 
-		Assert.equals(2, MySpodClass.manager.all().length, pos());
+		Assert.equals(2, MySpodClass.manager.all().length);
 		var req = MySpodClass.manager.search({ relation: OtherSpodClass.manager.select({ name:"third spod"} ) });
-		Assert.equals(1, req.length, pos());
+		Assert.equals(1, req.length);
 		scls = req.first();
 
 		scls.relation.name = "Test";
 		scls.relation.update();
 
-		Assert.isNull(OtherSpodClass.manager.select({ name:"third spod" }), pos());
+		Assert.isNull(OtherSpodClass.manager.select({ name:"third spod" }));
 
 		for (c in MySpodClass.manager.all())
 			c.delete();
@@ -472,7 +467,6 @@ class CommonDatabaseTest {
 		Assert.isNull(inexistent);
 	}
 
-	@Test
 	public function testDateQuery()
 	{
 		var other1 = new OtherSpodClass("required field");
@@ -490,27 +484,26 @@ class CommonDatabaseTest {
 		c2.insert();
 
 		var q = MySpodClass.manager.search($date > now);
-		Assert.equals(1, q.length, pos());
-		Assert.equals(c2, q.first(), pos());
+		Assert.equals(1, q.length);
+		Assert.equals(c2, q.first());
 
 		q = MySpodClass.manager.search($date == now);
-		Assert.equals(1, q.length, pos());
-		Assert.equals(c1, q.first(), pos());
+		Assert.equals(1, q.length);
+		Assert.equals(c1, q.first());
 
 		q = MySpodClass.manager.search($date >= now);
-		Assert.equals(2, q.length, pos());
-		Assert.equals(c1, q.first(), pos());
+		Assert.equals(2, q.length);
+		Assert.equals(c1, q.first());
 
 		q = MySpodClass.manager.search($date >= DateTools.delta(now, DateTools.hours(2)));
-		Assert.equals(0, q.length, pos());
-		Assert.isNull(q.first(), pos());
+		Assert.equals(0, q.length);
+		Assert.isNull(q.first());
 
 		c1.delete();
 		c2.delete();
 		other1.delete();
 	}
 
-	@Test
 	public function testData()
 	{
 		var other1 = new OtherSpodClass("required field");
@@ -520,7 +513,7 @@ class CommonDatabaseTest {
 		c1.relation = other1;
 		c1.insert();
 
-		Assert.equals(1, c1.data.length, pos());
+		Assert.equals(1, c1.data.length);
 		c1.data.pop();
 		c1.update();
 
@@ -528,27 +521,29 @@ class CommonDatabaseTest {
 		c1 = null;
 
 		c1 = MySpodClass.manager.select($relation == other1);
-		Assert.equals(0, c1.data.length, pos());
+		Assert.equals(0, c1.data.length);
 		c1.data.push(new ComplexClass({ name: "test1", array:["complex","field"] }));
 		c1.data.push(null);
-		Assert.equals(2, c1.data.length, pos());
+		Assert.equals(2, c1.data.length);
 		c1.update();
 
 		Manager.cleanup();
 		c1 = null;
 
 		c1 = MySpodClass.manager.select($relation == other1);
-		Assert.equals(2, c1.data.length, pos());
-		Assert.equals("test1", c1.data[0].val.name, pos());
-		Assert.equals(2, c1.data[0].val.array.length, pos());
-		Assert.equals("complex", c1.data[0].val.array[0], pos());
-		Assert.isNull(c1.data[1], pos());
+		Assert.equals(2, c1.data.length);
+		Assert.equals("test1", c1.data[0].val.name);
+		Assert.equals(2, c1.data[0].val.array.length);
+		Assert.equals("complex", c1.data[0].val.array[0]);
+		Assert.isNull(c1.data[1]);
 
 		c1.delete();
 		other1.delete();
 	}
 
-	@Test("Check that relations are not affected by the analyzer")
+	/**
+		Check that relations are not affected by the analyzer
+	**/
 	public function testIssue6()
 	{
 		/*
@@ -561,19 +556,24 @@ class CommonDatabaseTest {
 		var parent = new MySpodClass();
 		parent.relation = new OtherSpodClass("i");
 
-		Assert.isNotNull(parent.relation);
+		Assert.notNull(parent.relation);
 		Assert.equals("i", parent.relation.name);
 	}
 
-	@Test("Ensure that field types using full paths can be matched")
+	/**
+		Ensure that field types using full paths can be matched
+	**/
 	public function testIssue19()
 	{
 		var val = new Issue19SpodClass();
 		val.anEnum = SecondValue;
 		val.insert();
+		Assert.pass(); // not failing on insert() is enough
 	}
 
-	@Test("Test that cache management doesn't break @:skip fields")
+	/**
+		Test that cache management doesn't break @:skip fields
+	**/
 	public function testIssue34()
 	{
 		var child = new OtherSpodClass("i");
@@ -590,14 +590,8 @@ class CommonDatabaseTest {
 
 		// reported/real world case
 		main = MySpodClass.manager.all().first();
-		Assert.isNotNull(main.relation);  // cache child, but !lock
+		Assert.notNull(main.relation);  // cache child, but !lock
 		child = OtherSpodClass.manager.all().first();  // cache and lock
 		Assert.isNull(child.ignored);
-	}
-
-	private function pos(?p:haxe.PosInfos):haxe.PosInfos
-	{
-		p.fileName = p.fileName + "(" + Manager.cnx.dbName()  +")";
-		return p;
 	}
 }
