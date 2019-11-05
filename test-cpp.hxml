@@ -1,8 +1,6 @@
 -lib record-macros
 -cp test
 -lib hexunit:0.35.0
--lib jstack
 -main Main
--D php7
--D JSTACK_FORCE
--php ./
+-cpp build/cpp
+-debug
