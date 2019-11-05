@@ -3,8 +3,8 @@ sudo: true
 
 haxe:
 - development
+- 4.0.1
 - 3.4.7
-- 3.4.2
 
 before_install:
 #install php 7.2 on ubuntu trusty
@@ -16,17 +16,23 @@ before_install:
 - sudo apt-get install -y php7.2-mysqli
 #create database in mysql5.6
 - mysql -e 'CREATE DATABASE IF NOT EXISTS test;'
+# haxe libraries
+- haxelib install all --always
+  # temporarily use hxcpp git (see #43)
+- haxelib git hxcpp https://github.com/HaxeFoundation/hxcpp.git --always
+- (cd "$(haxelib path hxcpp | head -n1)"/tools/hxcpp && haxe compile.hxml)
 
-services:  
+services:
   - mysql
 
 install:
-- haxelib install all --always
 - haxelib dev record-macros .
 
 script:
-- haxe test.hxml
-- neko test.n mysql://travis:@127.0.0.1/test
+- haxe test-neko.hxml
+- neko build/test.n mysql://travis:@127.0.0.1/test
 - php -v
-- haxe testPHP.hxml
-- php index.php mysql://travis:@127.0.0.1/test
+- haxe test-php.hxml
+- php build/php/index.php mysql://travis:@127.0.0.1/test
+- haxe test-cpp.hxml
+- build/cpp/Main-debug mysql://travis:@127.0.0.1/test

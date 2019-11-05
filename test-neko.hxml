@@ -1,0 +1,5 @@
+-lib record-macros
+-cp test
+-lib hexunit:0.35.0
+-main Main
+-neko build/test.n
