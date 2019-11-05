@@ -411,7 +411,11 @@ class CommonDatabaseTest {
 		Assert.equals("other string", cls1.abstractType.get(), pos());
 		Assert.isNotNull(cls1.date, pos());
 		Assert.isInstanceOf(cls1.date, Date, pos());
+		#if (haxe_ver > 3.407)
 		Assert.equals(new Date(2012, 7, 30, 0, 0, 0).getTime(), cls1.date.getTime(), pos());
+		#else
+		// see haxe#6530 ("[cpp] fix Mysql.secondsToDate: Date.fromTime expects milliseconds")
+		#end
 
 		Assert.isInstanceOf(cls1.binary, Bytes, pos());
 		Assert.equals(0, cls1.binary.compare(Bytes.ofString("\x01\n\r'\x02")), pos());
