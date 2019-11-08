@@ -1,0 +1,4 @@
+-lib record-macros
+-cp test
+-lib utest
+-main Main
