@@ -2,3 +2,5 @@
 -cp test
 -lib utest
 -main Main
+-dce full
+-D analyzer-optimize
