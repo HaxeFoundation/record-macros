@@ -370,7 +370,7 @@ haxelib dev record-macros .
 
 # optional compiler flags:
 #   -D UTEST_PATTERN=<pattern>  filter tests with pattern
-#   -D UTEST_PRINT_TESTS:       print test names as they run
+#   -D UTEST_PRINT_TESTS        print test names as they run
 #   -D UTEST_FAILURE_THROW      throw instead of report failures
 
 haxe test-<target>.hxml
