@@ -353,5 +353,26 @@ The [dbadmin](https://github.com/ncannasse/dbadmin) project provides an HTML bas
 ## Compatibility
 When using MySQL 5.7+, consider disabling [strict mode](https://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sql-mode-strict). Record-macros do not provide sufficient checks (strings length,field default values...) to avoid errors in strict mode.
 
+## Running the unit tests
 
+```
+# clone and checkout
+git clone https://github.com/HaxeFoundation/record-macros
+cd record-macros
 
+# prepare a test environment
+haxelib newrepo
+haxelib install all --always
+
+# install record-macros in dev mode
+# (necessary for extraParams.hxml to run)
+haxelib dev record-macros .
+
+# optional compiler flags:
+#   -D UTEST_PATTERN=<pattern>  filter tests with pattern
+#   -D UTEST_PRINT_TESTS:       print test names as they run
+#   -D UTEST_FAILURE_THROW      throw instead of report failures
+
+haxe test-<target>.hxml
+<run resulting program> mysql://<user>:<password>@<host>[:<port>]/<database>
+```
