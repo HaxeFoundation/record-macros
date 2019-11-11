@@ -541,6 +541,21 @@ class CommonDatabaseTest extends utest.Test {
 		other1.delete();
 	}
 
+	public function testStringConcatenation()
+	{
+		var other1 = new OtherSpodClass("required field");
+		other1.insert();
+
+		var c1 = getDefaultClass();
+		c1.int = 4;
+		c1.string = "testData" + c1.int;
+		c1.relation = other1;
+		c1.insert();
+
+		var q = MySpodClass.manager.select($string == "test" + "Data" + $int);
+		Assert.notNull(q);
+	}
+
 	/**
 		Check that relations are not affected by the analyzer
 	**/

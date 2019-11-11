@@ -49,8 +49,15 @@ class Manager<T : Object> {
 
 	private static function set_cnx( c : Connection ) {
 		cnx = c;
-		lockMode = (c != null && c.dbName() == "MySQL") ? " FOR UPDATE" : "";
-		return c;
+		switch( cnx ) {
+		case null:
+		case _.dbName() => "MySQL":
+			lockMode = " FOR UPDATE";
+			cnx.request("SET sql_mode = 'PIPES_AS_CONCAT'");
+		default:
+			lockMode = "";
+		}
+		return cnx;
 	}
 
 	/* ---------------------------- BASIC API ----------------------------- */

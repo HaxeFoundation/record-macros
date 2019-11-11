@@ -739,13 +739,14 @@ class RecordMacros {
 			case OpAdd:
 				var r1 = buildCond(e1);
 				var r2 = buildCond(e2);
-				var rt = if( tryUnify(r1.t, DFloat) && tryUnify(r2.t, DFloat) )
-					tryUnify(r1.t, DInt) ? tryUnify(r2.t, DInt) ? DInt : DFloat : DFloat;
-				else if( (tryUnify(r1.t, DText) && canStringify(r2.t)) || (tryUnify(r2.t, DText) && canStringify(r1.t)) )
-					return { sql : sqlAddString(sqlAdd(sqlAddString(sqlAdd(makeString("CONCAT(",p),r1.sql,p),","),r2.sql,p),")"), t : DText, n : r1.n || r2.n }
-				else
+				if( tryUnify(r1.t, DFloat) && tryUnify(r2.t, DFloat) ) {
+					var rt = tryUnify(r1.t, DInt) ? tryUnify(r2.t, DInt) ? DInt : DFloat : DFloat;
+					return { sql : makeOp("+", r1.sql, r2.sql, p), t : rt, n : r1.n || r2.n };
+				} else if( (tryUnify(r1.t, DText) && canStringify(r2.t)) || (tryUnify(r2.t, DText) && canStringify(r1.t)) ) {
+					return { sql : makeOp("||", r1.sql, r2.sql, p), t : DText, n : r1.n || r2.n }
+				} else {
 					error("Can't add " + typeStr(r1.t) + " and " + typeStr(r2.t), p);
-				return { sql : makeOp("+", r1.sql, r2.sql, p), t : rt, n : r1.n || r2.n };
+				}
 			case OpBoolAnd, OpBoolOr:
 				var r1 = buildCond(e1);
 				var r2 = buildCond(e2);
