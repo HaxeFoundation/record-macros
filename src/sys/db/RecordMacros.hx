@@ -709,6 +709,8 @@ class RecordMacros {
 		var sql = null;
 		var p = cond.pos;
 		switch( cond.expr ) {
+		case EBlock([]):
+			return buildCond({ expr: EObjectDecl([]), pos:cond.pos });
 		case EObjectDecl(fl):
 			var first = true;
 			var sql = makeString("(", p);
@@ -726,7 +728,7 @@ class RecordMacros {
 				else
 					fields.set(fi.name, true);
 			}
-			if( first ) sqlAddString(sql, "TRUE");
+			if( first ) sql = sqlAddString(sql, "TRUE");
 			sql = sqlAddString(sql, ")");
 			return { sql : sql, t : DBool, n : false };
 		case EParenthesis(e):

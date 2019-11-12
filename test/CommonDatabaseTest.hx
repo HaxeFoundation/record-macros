@@ -536,6 +536,43 @@ class CommonDatabaseTest extends utest.Test {
 		Assert.notNull(q);
 	}
 
+	public function testBoolean()
+	{
+		var other = new OtherSpodClass("required field");
+		other.insert();
+
+		var c1 = getDefaultClass();
+		c1.boolean = false;
+		c1.relation = other;
+		c1.insert();
+
+		var c2 = getDefaultClass();
+		c2.boolean = true;
+		c2.relation = other;
+		c2.insert();
+
+		var r1 = MySpodClass.manager.search($boolean == false);
+		Assert.same([c1.theId], Lambda.map(r1, function (r) return r.theId));
+
+		var r2 = MySpodClass.manager.search($boolean == true);
+		Assert.same([c2.theId], Lambda.map(r2, function (r) return r.theId));
+
+		var r3 = MySpodClass.manager.search($boolean);
+		Assert.same([c2.theId], Lambda.map(r3, function (r) return r.theId));
+
+		var r4 = MySpodClass.manager.search(true);
+		Assert.same([c1.theId, c2.theId], Lambda.map(r4, function (r) return r.theId));
+
+		var r5 = MySpodClass.manager.search({});
+		Assert.same([c1.theId, c2.theId], Lambda.map(r5, function (r) return r.theId));
+
+		var r6 = MySpodClass.manager.dynamicSearch({});
+		Assert.same([c1.theId, c2.theId], Lambda.map(r6, function (r) return r.theId));
+
+		var r7 = MySpodClass.manager.search($theId in []);
+		Assert.same([], Lambda.map(r7, function (r) return r.theId));
+	}
+
 	/**
 		Check that relations are not affected by the analyzer
 	**/
