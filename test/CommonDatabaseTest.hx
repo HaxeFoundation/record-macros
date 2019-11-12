@@ -551,26 +551,14 @@ class CommonDatabaseTest extends utest.Test {
 		c2.relation = other;
 		c2.insert();
 
-		var r1 = MySpodClass.manager.search($boolean == false);
-		Assert.same([c1.theId], Lambda.map(r1, function (r) return r.theId));
-
-		var r2 = MySpodClass.manager.search($boolean == true);
-		Assert.same([c2.theId], Lambda.map(r2, function (r) return r.theId));
-
-		var r3 = MySpodClass.manager.search($boolean);
-		Assert.same([c2.theId], Lambda.map(r3, function (r) return r.theId));
-
-		var r4 = MySpodClass.manager.search(true);
-		Assert.same([c1.theId, c2.theId], Lambda.map(r4, function (r) return r.theId));
-
-		var r5 = MySpodClass.manager.search({});
-		Assert.same([c1.theId, c2.theId], Lambda.map(r5, function (r) return r.theId));
-
-		var r6 = MySpodClass.manager.dynamicSearch({});
-		Assert.same([c1.theId, c2.theId], Lambda.map(r6, function (r) return r.theId));
-
-		var r7 = MySpodClass.manager.search($theId in []);
-		Assert.same([], Lambda.map(r7, function (r) return r.theId));
+		var mgr = MySpodClass.manager;
+		Assert.same([c1.theId], [for (r in mgr.search($boolean == false)) r.theId]);
+		Assert.same([c2.theId], [for (r in mgr.search($boolean == true)) r.theId]);
+		Assert.same([c2.theId], [for (r in mgr.search($boolean)) r.theId]);
+		Assert.same([c1.theId, c2.theId], [for (r in mgr.search(true)) r.theId]);
+		Assert.same([c1.theId, c2.theId], [for (r in mgr.search({})) r.theId]);
+		Assert.same([c1.theId, c2.theId], [for (r in mgr.dynamicSearch({})) r.theId]);
+		Assert.same([], [for (r in mgr.search($theId in [])) r.theId]);
 	}
 
 	/**
