@@ -148,10 +148,6 @@ class CommonDatabaseTest extends utest.Test {
 		checkReq(NullableSpodClass.manager.search($binary == binary));
 		var abstractType:SNull<String> = getNull();
 		checkReq(NullableSpodClass.manager.search($abstractType == abstractType));
-
-		for (val in NullableSpodClass.manager.all()) {
-			val.delete();
-		}
 	}
 
 	private function getNull<T>():Null<T> {
@@ -233,10 +229,6 @@ class CommonDatabaseTest extends utest.Test {
 			Assert.equals(second, rel.ref);
 
 		Assert.equals(-1, frel.array().indexOf(srel.first()));
-		second.delete();
-		for (r in srel) r.delete();
-		first.delete();
-		for (r in frel) r.delete();
 	}
 
 	public function testEnum()
@@ -287,9 +279,6 @@ class CommonDatabaseTest extends utest.Test {
 		var s = [ for (c in MySpodClass.manager.search( $anEnum == SecondValue || ($theId in ids) )) c.theId ];
 		s.sort(Reflect.compare);
 		Assert.same(s, [id1, id2, id3]);
-
-		r2s.first().delete();
-		for (v in MySpodClass.manager.search($anEnum == fv)) v.delete();
 	}
 
 	public function getFirst()
@@ -363,8 +352,6 @@ class CommonDatabaseTest extends utest.Test {
 		scls = new NullableSpodClass();
 		scls.theId = id;
 		Assert.notNull(untyped NullableSpodClass.manager.getUpdateStatement(scls));
-
-		scls.delete();
 	}
 
 	public function testSpodTypes()
@@ -498,10 +485,6 @@ class CommonDatabaseTest extends utest.Test {
 		q = MySpodClass.manager.search($date >= DateTools.delta(now, DateTools.hours(2)));
 		Assert.equals(0, q.length);
 		Assert.isNull(q.first());
-
-		c1.delete();
-		c2.delete();
-		other1.delete();
 	}
 
 	public function testData()
@@ -536,9 +519,6 @@ class CommonDatabaseTest extends utest.Test {
 		Assert.equals(2, c1.data[0].val.array.length);
 		Assert.equals("complex", c1.data[0].val.array[0]);
 		Assert.isNull(c1.data[1]);
-
-		c1.delete();
-		other1.delete();
 	}
 
 	public function testStringConcatenation()
