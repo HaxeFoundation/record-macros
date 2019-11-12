@@ -500,8 +500,6 @@ class RecordMacros {
 			case CIdent(n):
 				switch( n ) {
 				case "null": return { expr : EConst(CString("NULL")), pos : v.pos };
-				case "true": return { expr : EConst(CString("TRUE")), pos : v.pos };
-				case "false": return { expr : EConst(CString("FALSE")), pos : v.pos };
 				}
 			default:
 			}
@@ -728,7 +726,7 @@ class RecordMacros {
 				else
 					fields.set(fi.name, true);
 			}
-			if( first ) sql = sqlAddString(sql, "TRUE");
+			if( first ) sql = sqlAdd(sql, sqlQuoteValue({ expr : EConst(CIdent("true")), pos : sql.pos }, DBool, false), sql.pos);
 			sql = sqlAddString(sql, ")");
 			return { sql : sql, t : DBool, n : false };
 		case EParenthesis(e):
@@ -839,10 +837,6 @@ class RecordMacros {
 				switch( n ) {
 				case "null":
 					return { sql : makeString("NULL", p), t : DNull, n : true };
-				case "true":
-					return { sql : makeString("TRUE", p), t : DBool, n : false };
-				case "false":
-					return { sql : makeString("FALSE", p), t : DBool, n : false };
 				}
 				return buildDefault(cond);
 			}

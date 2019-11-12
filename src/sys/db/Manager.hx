@@ -186,7 +186,7 @@ class Manager<T : Object> {
 		}
 		s.add("INSERT INTO ");
 		s.add(table_name);
-		if (fields.length > 0 || cnx.dbName() != "SQLite")
+		if (fields.length > 0 || getCnx().dbName() != "SQLite")
 		{
 			s.add(" (");
 			s.add(fields.join(","));
@@ -563,7 +563,7 @@ class Manager<T : Object> {
 				}
 			}
 		if( first )
-			s.add("TRUE");
+			getCnx().addValue(s, true);
 	}
 
 	/* --------------------------- MISC API  ------------------------------ */
@@ -724,7 +724,7 @@ class Manager<T : Object> {
 				cnx.addValue(b, v);
 			}
 		if( first )
-			return "FALSE";
+			return quoteAny(false);
 		return v + " IN (" + b.toString() + ")";
 	}
 
