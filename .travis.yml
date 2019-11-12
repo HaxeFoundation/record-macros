@@ -3,7 +3,7 @@ sudo: true
 
 haxe:
 - development
-- 4.0.1
+- stable
 - 3.4.7
 
 before_install:
