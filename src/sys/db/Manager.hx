@@ -372,8 +372,10 @@ class Manager<T : Object> {
 					case DSmallBinary, DLongBinary, DBinary, DBytes(_), DData:
 						if (Std.is(val, String))
 							val = haxe.io.Bytes.ofString(val);
+						#if cpp
 						else if (Std.is(val, haxe.io.BytesData))
 							val = haxe.io.Bytes.ofData(val);
+						#end
 					case DString(_) | DTinyText | DSmallText | DText if(!Std.is(val,String)):
 						val = val + "";
 #if (cs && erase_generics)
