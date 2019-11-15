@@ -369,8 +369,11 @@ class Manager<T : Object> {
 								v = v.substr(0,index);
 							val = Date.fromString(v);
 						}
-					case DSmallBinary, DLongBinary, DBinary, DBytes(_), DData if (Std.is(val, String)):
-						val = haxe.io.Bytes.ofString(val);
+					case DSmallBinary, DLongBinary, DBinary, DBytes(_), DData:
+						if (Std.is(val, String))
+							val = haxe.io.Bytes.ofString(val);
+						else if (Std.is(val, haxe.io.BytesData))
+							val = haxe.io.Bytes.ofData(val);
 					case DString(_) | DTinyText | DSmallText | DText if(!Std.is(val,String)):
 						val = val + "";
 #if (cs && erase_generics)
