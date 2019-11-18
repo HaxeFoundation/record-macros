@@ -1393,7 +1393,15 @@ class RecordMacros {
 							f.meta.push({ name: ":isVar", params : [], pos : pos });
 							fields.push({ name : "get_"+f.name, pos : pos, meta : meta, access : [APrivate], doc : null, kind : FFun(get) });
 							fields.push({ name : "set_"+f.name, pos : pos, meta : meta, access : [APrivate], doc : null, kind : FFun(set) });
-							fields.push({ name : relKey, pos : pos, meta : [{ name : ":skip", params : [], pos : pos }], access : [APrivate], doc : null, kind : FVar(macro : Dynamic) });
+							var hasRelKey = false;
+							for( f in fields )
+								if( f.name == relKey )
+								{
+									hasRelKey = true;
+									break;
+								}
+							if( hasRelKey )
+								fields.push({ name : relKey, pos : pos, meta : [{ name : ":skip", params : [], pos : pos }], access : [APrivate], doc : null, kind : FVar(macro : Dynamic) });
 					default:
 						Context.error("Invalid relation field type", f.pos);
 					}
