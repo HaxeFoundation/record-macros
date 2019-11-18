@@ -1400,7 +1400,7 @@ class RecordMacros {
 									hasRelKey = true;
 									break;
 								}
-							if( hasRelKey )
+							if( !hasRelKey )
 								fields.push({ name : relKey, pos : pos, meta : [{ name : ":skip", params : [], pos : pos }], access : [APrivate], doc : null, kind : FVar(macro : Dynamic) });
 					default:
 						Context.error("Invalid relation field type", f.pos);
