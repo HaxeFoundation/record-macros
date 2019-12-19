@@ -32,7 +32,7 @@ class CommonDatabaseTest extends utest.Test {
 			var quoteField = @:privateAccess cls.manager.quoteField;
 			var name = cls.manager.dbInfos().name;
 			try {
-				Manager.cnx.request('DROP TABLE ${quoteField(name)}');
+				Manager.cnx.request('DROP TABLE IF EXISTS ${quoteField(name)}');
 			}
 			catch (e:Dynamic) {
 				// ignore
