@@ -413,7 +413,11 @@ class CommonDatabaseTest extends utest.Test {
 		Assert.equals(SecondValue, cls1.anEnum);
 		assertIsInstanceOf(cls1.anEnum, SpodEnum);
 
+		#if hl
+		Assert.equals(haxe.io.Bytes.ofString("\000a").toHex(), cls1.bytes.toHex());
+		#else
 		Assert.equals("\000a", cls1.bytes.toString());
+		#end
 
 		Assert.equals(MySpodClass.manager.select($anEnum == SecondValue), cls1);
 
