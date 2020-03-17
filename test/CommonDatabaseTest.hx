@@ -609,4 +609,23 @@ class CommonDatabaseTest extends utest.Test {
 		child = OtherSpodClass.manager.all().first();  // cache and lock
 		Assert.isNull(child.ignored);
 	}
+
+    #if haxe4
+    public function testUnicode() {
+        for (sUnicode in [
+            "аҧсуа",   // Abkhaz, native name of a language 
+            "አማርኛ",    // Amharic
+            "العربية", // Arabic
+            "汉语",    // Chinese
+        ]) {
+            var n1 = getDefaultNull();
+            n1.string = sUnicode;
+            n1.insert();
+
+            var n2 = NullableSpodClass.manager.select($theId == n1.theId);
+            Assert.isTrue( n2 != null );
+            Assert.equals( n2.string, sUnicode );
+        }
+    }
+    #end
 }
