@@ -399,7 +399,7 @@ class Manager<T : Object> {
 		}
 	}
 
-	function cacheObject( x : T, lock : Bool ) {
+	function cacheObject( x : CacheType<T>, lock : Bool ) {
 		#if neko
 		var o = untyped __dollar__new(x);
 		untyped __dollar__objsetproto(o, class_proto.prototype);
@@ -646,7 +646,7 @@ class Manager<T : Object> {
 
 	/* ---------------------------- OBJECT CACHE -------------------------- */
 
-	function makeCacheKey( x : T ) : String {
+	function makeCacheKey( x : CacheType<T> ) : String {
 		if( table_keys.length == 1 ) {
 			var k = Reflect.field(x,table_keys[0]);
 			if( k == null )
