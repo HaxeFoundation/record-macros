@@ -1,5 +1,2 @@
 test-common.hxml
--lib jstack
--D php7
--D JSTACK_FORCE
 -php build/php
