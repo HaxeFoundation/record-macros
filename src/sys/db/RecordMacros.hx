@@ -1381,13 +1381,13 @@ class RecordMacros {
 								args : [],
 								params : [],
 								ret : t,
-								expr : Context.parse("return untyped "+tname+".manager.__get(this,'"+f.name+"','"+relKey+"',"+lock+")",pos),
+								expr: macro return @:privateAccess $i{tname}.manager.__get(this, $v{f.name}, $v{relKey}, $v{lock}),
 							};
 							var set = {
 								args : [{ name : "_v", opt : false, type : t, value : null }],
 								params : [],
 								ret : t,
-								expr : Context.parse("return untyped "+tname+".manager.__set(this,'"+f.name+"','"+relKey+"',_v)",pos),
+								expr: macro return @:privateAccess $i{tname}.manager.__set(this, $v{f.name}, $v{relKey}, _v),
 							};
 							var meta = [{ name : ":hide", params : [], pos : pos }];
 							f.meta.push({ name: ":isVar", params : [], pos : pos });
@@ -1398,6 +1398,15 @@ class RecordMacros {
 								if( f.name == relKey )
 								{
 									hasRelKey = true;
+									if (f.meta == null)
+										f.meta = [];
+									f.meta.push({ name : ":skip", params : [], pos : pos });
+									switch(f.kind) {
+										case FProp(_, _, t, e), FVar(t, e): 
+											f.kind = FProp('default','never', t, e);
+										case FFun(f):
+											Context.error("Relation key should be a var or a property", f.expr.pos);
+									}
 									break;
 								}
 							if( !hasRelKey )
