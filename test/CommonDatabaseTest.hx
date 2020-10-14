@@ -21,7 +21,9 @@ class CommonDatabaseTest extends utest.Test {
 		ClassWithStringIdRef,
 		IssueC3828,
 		Issue6041Table,
-		Issue19SpodClass
+		Issue19SpodClass,
+		PublicKeyClass,
+		PublicKeyRelationClass
 	];
 
 	public function setup()
@@ -613,5 +615,23 @@ class CommonDatabaseTest extends utest.Test {
 		Assert.notNull(main.relation);  // cache child, but !lock
 		child = OtherSpodClass.manager.all().first();  // cache and lock
 		Assert.isNull(child.ignored);
+	}
+
+	public function testPublicForeignKey( )
+	{
+		var rel = new PublicKeyRelationClass();
+		rel.insert();
+
+		var pk = new PublicKeyClass();
+		pk.relation = rel;
+		pk.insert();
+		Manager.cleanup();
+
+		rel = PublicKeyRelationClass.manager.all(false).first();
+		Assert.notNull(rel);
+		pk = PublicKeyClass.manager.all(false).first();
+		Assert.notNull(pk);
+		Assert.notNull(pk.relation);
+		Assert.equals(pk.relation_id, rel.id);
 	}
 }
