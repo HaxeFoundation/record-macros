@@ -132,3 +132,11 @@ class TLazyIssueBar extends sys.db.Object {
 	public var anEnum:sys.db.Types.SEnum<SpodEnum>;
 }
 
+class PublicKeyClass extends Object {
+	public var id:SId;
+	public var relation_id : SInt;
+	@:relation(relation_id) public var relation:PublicKeyRelationClass;
+}
+class PublicKeyRelationClass extends Object {
+	public var id:SId;
+}

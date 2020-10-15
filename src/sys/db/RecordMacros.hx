@@ -1381,19 +1381,36 @@ class RecordMacros {
 								args : [],
 								params : [],
 								ret : t,
-								expr : Context.parse("return untyped "+tname+".manager.__get(this,'"+f.name+"','"+relKey+"',"+lock+")",pos),
+								expr: macro return @:privateAccess $i{tname}.manager.__get(this, $v{f.name}, $v{relKey}, $v{lock}),
 							};
 							var set = {
 								args : [{ name : "_v", opt : false, type : t, value : null }],
 								params : [],
 								ret : t,
-								expr : Context.parse("return untyped "+tname+".manager.__set(this,'"+f.name+"','"+relKey+"',_v)",pos),
+								expr: macro return @:privateAccess $i{tname}.manager.__set(this, $v{f.name}, $v{relKey}, _v),
 							};
 							var meta = [{ name : ":hide", params : [], pos : pos }];
 							f.meta.push({ name: ":isVar", params : [], pos : pos });
 							fields.push({ name : "get_"+f.name, pos : pos, meta : meta, access : [APrivate], doc : null, kind : FFun(get) });
 							fields.push({ name : "set_"+f.name, pos : pos, meta : meta, access : [APrivate], doc : null, kind : FFun(set) });
-							fields.push({ name : relKey, pos : pos, meta : [{ name : ":skip", params : [], pos : pos }], access : [APrivate], doc : null, kind : FVar(macro : Dynamic) });
+							var hasRelKey = false;
+							for( f in fields )
+								if( f.name == relKey )
+								{
+									hasRelKey = true;
+									if (f.meta == null)
+										f.meta = [];
+									f.meta.push({ name : ":skip", params : [], pos : pos });
+									switch(f.kind) {
+										case FProp(_, _, t, e), FVar(t, e): 
+											f.kind = FProp('default','never', t, e);
+										case FFun(f):
+											Context.error("Relation key should be a var or a property", f.expr.pos);
+									}
+									break;
+								}
+							if( !hasRelKey )
+								fields.push({ name : relKey, pos : pos, meta : [{ name : ":skip", params : [], pos : pos }], access : [APrivate], doc : null, kind : FVar(macro : Dynamic) });
 					default:
 						Context.error("Invalid relation field type", f.pos);
 					}
