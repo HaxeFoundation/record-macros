@@ -818,7 +818,7 @@ class RecordMacros {
 				var sql = makeString("-", p);
 				unify(r.t, DFloat, e.pos);
 				return { sql : sqlAdd(sql, r.sql, p), t : r.t, n : r.n };
-			case OpIncrement, OpDecrement:
+			case OpIncrement, OpDecrement #if (haxe_ver >= "4.2") , OpSpread #end:
 				error("Unsupported operation", p);
 			}
 		case EConst(c):
