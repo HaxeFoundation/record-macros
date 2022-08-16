@@ -794,7 +794,7 @@ class RecordMacros {
 				});
 				return { sql : { expr : ECall( { expr : EField(manager, "quoteList"), pos : p }, [e.sql, { expr : ECheckType(e2,t), pos : p } ]), pos : p }, t : DBool, n : e.n };
 			#end
-			case OpUShr, OpInterval, OpAssignOp(_), OpAssign, OpArrow:
+			case OpUShr, OpInterval, OpAssignOp(_), OpAssign, OpArrow, OpNullCoal:
 				error("Unsupported operation", p);
 			}
 		case EUnop(op, _, e):
@@ -1357,7 +1357,7 @@ class RecordMacros {
 								continue;
 							// generate get/set methods stubs
 							var pos = f.pos;
-							var ttype = t, tname;
+							var ttype = t, tname, p;
 							while( true )
 								switch(ttype) {
 								case TPath(t):
@@ -1368,7 +1368,7 @@ class RecordMacros {
 										};
 										continue;
 									}
-									var p = t.pack.copy();
+									p = t.pack.copy();
 									p.push(t.name);
 									if( t.sub != null ) p.push(t.sub);
 									tname = p.join(".");
@@ -1381,13 +1381,13 @@ class RecordMacros {
 								args : [],
 								params : [],
 								ret : t,
-								expr: macro return @:privateAccess $i{tname}.manager.__get(this, $v{f.name}, $v{relKey}, $v{lock}),
+								expr: macro return @:privateAccess $p{p}.manager.__get(this, $v{f.name}, $v{relKey}, $v{lock}),
 							};
 							var set = {
 								args : [{ name : "_v", opt : false, type : t, value : null }],
 								params : [],
 								ret : t,
-								expr: macro return @:privateAccess $i{tname}.manager.__set(this, $v{f.name}, $v{relKey}, _v),
+								expr: macro return @:privateAccess $p{p}.manager.__set(this, $v{f.name}, $v{relKey}, _v),
 							};
 							var meta = [{ name : ":hide", params : [], pos : pos }];
 							f.meta.push({ name: ":isVar", params : [], pos : pos });
