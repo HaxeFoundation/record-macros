@@ -794,7 +794,7 @@ class RecordMacros {
 				});
 				return { sql : { expr : ECall( { expr : EField(manager, "quoteList"), pos : p }, [e.sql, { expr : ECheckType(e2,t), pos : p } ]), pos : p }, t : DBool, n : e.n };
 			#end
-			case OpUShr, OpInterval, OpAssignOp(_), OpAssign, OpArrow, OpNullCoal:
+			case OpUShr, OpInterval, OpAssignOp(_), OpAssign, OpArrow, #if (haxe_ver >= 4.3) , OpNullCoal #end:
 				error("Unsupported operation", p);
 			}
 		case EUnop(op, _, e):
