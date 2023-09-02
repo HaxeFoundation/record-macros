@@ -26,7 +26,8 @@ package sys.db;
 	website to learn how to use Record.
 **/
 @:keepSub
-@:autoBuild(sys.db.RecordMacros.macroBuild()) @:skipFields
+//@:autoBuild(sys.db.RecordMacros.macroBuild())
+@:skipFields
 #if ((haxe_ver < 4.0) && php) @:native("sys.db.Object_hx") #end
 class Object {
 
