@@ -298,6 +298,14 @@ class RecordMacros {
 		};
 		g.cache.set(cname, i);
 		var c = c.get();
+		// Prevent static generics
+		if( cname == "get.T" ){
+			switch c.kind{
+				case KTypeParameter([TInst(const,[])])	:
+					c	= const.get();
+				case _:
+			}
+		}
 		var fieldsPos = new haxe.ds.StringMap();
 		var fields = c.fields.get();
 		var csup = c.superClass;
@@ -461,8 +469,9 @@ class RecordMacros {
 			default:
 			}
 		// check primary key defined
-		if( i.key == null )
+		if( i.key == null ){
 			error("Table is missing unique id, use either SId, SUId, SBigID or @:id", c.pos);
+		}
 		return i;
 	}
 
@@ -1357,7 +1366,7 @@ class RecordMacros {
 								continue;
 							// generate get/set methods stubs
 							var pos = f.pos;
-							var ttype = t, tname;
+							var ttype = t, tname, p;
 							while( true )
 								switch(ttype) {
 								case TPath(t):
@@ -1368,7 +1377,7 @@ class RecordMacros {
 										};
 										continue;
 									}
-									var p = t.pack.copy();
+									p = t.pack.copy();
 									p.push(t.name);
 									if( t.sub != null ) p.push(t.sub);
 									tname = p.join(".");
@@ -1381,13 +1390,13 @@ class RecordMacros {
 								args : [],
 								params : [],
 								ret : t,
-								expr: macro return @:privateAccess $i{tname}.manager.__get(this, $v{f.name}, $v{relKey}, $v{lock}),
+								expr: macro return @:privateAccess $p{p}.manager.__get(this, $v{f.name}, $v{relKey}, $v{lock}),
 							};
 							var set = {
 								args : [{ name : "_v", opt : false, type : t, value : null }],
 								params : [],
 								ret : t,
-								expr: macro return @:privateAccess $i{tname}.manager.__set(this, $v{f.name}, $v{relKey}, _v),
+								expr: macro return @:privateAccess $p{p}.manager.__set(this, $v{f.name}, $v{relKey}, _v),
 							};
 							var meta = [{ name : ":hide", params : [], pos : pos }];
 							f.meta.push({ name: ":isVar", params : [], pos : pos });
@@ -1442,7 +1451,7 @@ class RecordMacros {
 				fields.push({ name: "__getManager", meta : [], access : [APrivate,AOverride], doc : null, kind : FFun(getM), pos : inst.pos });
 			}
 			var p = inst.pos;
-			var tinst = TPath( { pack : inst.pack, name : inst.name, sub : null, params : [] } );
+			var tinst = TPath( { pack : inst.pack, name : inst.name, sub : null, params : inst.params.map( p->TPType( haxe.macro.Context.toComplexType( p.t ) ) ) } );
 			var path = inst.pack.copy().concat([inst.name]).join(".");
 			var enew = { expr : ENew( { pack : ["sys", "db"], name : "Manager", sub : null, params : [TPType(tinst)] }, [Context.parse(path, p)]), pos : p }
 			fields.push({ name : "manager", meta : [], kind : FVar(null,enew), doc : null, access : [AStatic,APublic], pos : p });

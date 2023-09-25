@@ -358,8 +358,8 @@ class Manager<T : Object> {
 			if (info != null)
 			{
 				if (val != null) switch (info.t) {
-					case DDate, DDateTime if (!Std.is(val,Date)):
-						if (Std.is(val,Float))
+					case DDate, DDateTime if (!Std.isOfType(val,Date)):
+						if (Std.isOfType(val,Float))
 						{
 							val = Date.fromTime(val);
 						} else {
@@ -370,27 +370,27 @@ class Manager<T : Object> {
 							val = Date.fromString(v);
 						}
 					case DSmallBinary, DLongBinary, DBinary, DBytes(_), DData:
-						if (Std.is(val, String))
+						if (Std.isOfType(val, String))
 							val = haxe.io.Bytes.ofString(val);
 						#if cpp
-						else if (Std.is(val, haxe.io.BytesData))
+						else if (Std.isOfType(val, haxe.io.BytesData))
 							val = haxe.io.Bytes.ofData(val);
 						#end
-					case DString(_) | DTinyText | DSmallText | DText if(!Std.is(val,String)):
+					case DString(_) | DTinyText | DSmallText | DText if(!Std.isOfType(val,String)):
 						val = val + "";
 #if (cs && erase_generics)
 					// on C#, SQLite Ints are returned as Int64
-					case DInt if (!Std.is(val,Int)):
+					case DInt if (!Std.isOfType(val,Int)):
 						val = cast(val,Int);
 #end
-					case DBool if (!Std.is(val,Bool)):
-						if (Std.is(val,Int))
+					case DBool if (!Std.isOfType(val,Bool)):
+						if (Std.isOfType(val,Int))
 							val = val != 0;
-						else if (Std.is(val, String)) switch (val.toLowerCase()) {
+						else if (Std.isOfType(val, String)) switch (val.toLowerCase()) {
 							case "1", "true": val = true;
 							case "0", "false": val = false;
 						}
-					case DFloat if (Std.is(val,String)):
+					case DFloat if (Std.isOfType(val,String)):
 						val = Std.parseFloat(val);
 					case _:
 				}
