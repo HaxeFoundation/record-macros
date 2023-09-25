@@ -794,7 +794,7 @@ class RecordMacros {
 				});
 				return { sql : { expr : ECall( { expr : EField(manager, "quoteList"), pos : p }, [e.sql, { expr : ECheckType(e2,t), pos : p } ]), pos : p }, t : DBool, n : e.n };
 			#end
-			case OpUShr, OpInterval, OpAssignOp(_), OpAssign, OpArrow:
+			case OpUShr, OpInterval, OpAssignOp(_), OpAssign, OpArrow #if (haxe_ver >= 4.3) , OpNullCoal #end:
 				error("Unsupported operation", p);
 			}
 		case EUnop(op, _, e):
@@ -1402,7 +1402,7 @@ class RecordMacros {
 										f.meta = [];
 									f.meta.push({ name : ":skip", params : [], pos : pos });
 									switch(f.kind) {
-										case FProp(_, _, t, e), FVar(t, e): 
+										case FProp(_, _, t, e), FVar(t, e):
 											f.kind = FProp('default','never', t, e);
 										case FFun(f):
 											Context.error("Relation key should be a var or a property", f.expr.pos);
