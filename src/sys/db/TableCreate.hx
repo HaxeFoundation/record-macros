@@ -86,13 +86,28 @@ class TableCreate {
 			}
 			decls.push(quote(f.name)+" "+getTypeSQL(f.t,dbName)+(f.isNull ? "" : " NOT NULL"));
 		}
-		if( dbName != "SQLite" || !hasID )
+		if( !hasID )
 			decls.push("PRIMARY KEY ("+Lambda.map(infos.key,quote).join(",")+")");
+		if( dbName != "SQLite" ) {
+			for( i in infos.indexes ) {
+				decls.push((i.unique ? "UNIQUE INDEX " : "INDEX ") + quote((i.unique ? "ux_" : "ix_") + infos.name + "_" + i.keys.join("_")) + " (" + Lambda.map(i.keys,quote).join(", ") + ")");
+			}
+		}
 		sql += decls.join(",");
 		sql += ")";
 		if( engine != null )
 			sql += "ENGINE="+engine;
 		cnx.request(sql);
+		if( dbName == "SQLite" ) {
+			for( i in infos.indexes ) {
+				var sql = "CREATE " + (i.unique ? "UNIQUE INDEX " : "INDEX ") + quote((i.unique ? "ux_" : "ix_") + infos.name + "_" + i.keys.join("_")) + " ON " + quote(infos.name) + " (";
+				sql += Lambda.map(i.keys,quote).join(", ");
+				sql += ")";
+				if( engine != null )
+					sql += "ENGINE="+engine;
+				cnx.request(sql);
+			}
+		}
 	}
 
 	public static function exists( manager : sys.db.Manager<Dynamic> ) : Bool {
